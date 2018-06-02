@@ -10,6 +10,7 @@
  *
  * Copyright (c) 2002, Joris Robijn
  *               2006-2008, Peter Marschall
+ * TODO (kodebach): Copyright
  */
 
 #include <stdio.h>
@@ -25,7 +26,7 @@
 #include "getopt.h"
 
 #include "shared/report.h"
-#include "shared/configfile.h"
+#include "shared/elektraconfig.h"
 #include "shared/sockets.h"
 #include "lcd_link.h"
 #include "vc_link.h"
@@ -41,6 +42,7 @@
 #define DEFAULT_CONFIGFILE	SYSCONFDIR "/lcdvc.conf"
 #define DEFAULT_PIDFILE		PIDFILEDIR "/lcdvc.pid"
 
+#define CONFIG_BASE_KEY		"/sw/lcdproc/client/#0/current/lcdvc"
 
 char *help_text =
 "lcdvc - LCDproc virtual console\n"
@@ -77,7 +79,7 @@ int Quit = 0;			/**< indicate end of main loop */
 /* Function prototypes */
 static void exit_program(int val);
 static int process_command_line(int argc, char **argv);
-static int process_configfile(char *configfile);
+static int process_kdb(char *configfile);
 static int main_loop(void);
 
 
@@ -90,7 +92,7 @@ int main(int argc, char **argv)
 	if (strcmp( configfile, UNSET_STR ) == 0) {
 		configfile = DEFAULT_CONFIGFILE;
 	}
-	CHAIN( e, process_configfile( configfile ));
+	CHAIN( e, process_kdb( configfile ));
 	if (report_dest == UNSET_INT || report_level == UNSET_INT) {
 		report_dest = RPT_DEST_STDERR;
 		report_level = RPT_ERR;
@@ -221,46 +223,58 @@ static int process_command_line(int argc, char **argv)
 	return error;
 }
 
+// TODO (kodebach): move
 
-static int process_configfile(char *configfile)
+
+static int process_kdb(char *configfile)
 {
 	if (strcmp(configfile, UNSET_STR) == 0) {
 		configfile = DEFAULT_CONFIGFILE;
 	}
-	if (config_read_file( configfile ) < 0) {
-		report( RPT_WARNING, "Could not read config file: %s", configfile);
+
+	if(strcmp(configfile, DEFAULT_CONFIGFILE) != 0) {
+		report( RPT_ERR, "currently unsupported"); // TODO (kodebach): support
+		return -1;
+	}
+
+	KeySet* config = econfig_open(CONFIG_BASE_KEY);
+	if (config == NULL) {
+		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
+		return -1;
 	}
 
 	if (strcmp(address, UNSET_STR ) == 0) {
-		address = strdup(config_get_string( progname, "Address", 0, "localhost"));
+		address = econfig_get_string(config, CONFIG_BASE_KEY"/address", "localhost");
 	}
 	if (port == UNSET_INT) {
-		port = config_get_int(progname, "Port", 0, 13666);
+		port = econfig_get_long(config, CONFIG_BASE_KEY"/port", 13666);
 	}
 	if (report_level == UNSET_INT ) {
-		report_level = config_get_int(progname, "ReportLevel", 0, RPT_WARNING);
+		report_level = econfig_get_long(config, CONFIG_BASE_KEY"/reportlevel", RPT_WARNING);
 	}
 	if (report_dest == UNSET_INT) {
-		if (config_get_bool(progname, "ReportToSyslog", 0, 0)) {
+		if (econfig_get_bool(config, CONFIG_BASE_KEY"/reporttosyslog", false)) {
 			report_dest = RPT_DEST_SYSLOG;
 		} else {
 			report_dest = RPT_DEST_STDERR;
 		}
 	}
 	if (foreground != TRUE) {
-		foreground = config_get_bool(progname, "Foreground", 0, FALSE);
+		foreground = econfig_get_bool(config, CONFIG_BASE_KEY"/foreground", false);
 	}
 	if (pidfile == NULL) {
-		pidfile = strdup(config_get_string(progname, "PidFile", 0, DEFAULT_PIDFILE));
+		pidfile = econfig_get_string(config, CONFIG_BASE_KEY"/pidfile", DEFAULT_PIDFILE);
 	}
 
-	vcs_device = strdup(config_get_string(progname, "vcsDevice", 0, "/dev/vcs"));
-	vcsa_device = strdup(config_get_string(progname, "vcsaDevice", 0, "/dev/vcsa"));
+	vcs_device = econfig_get_string(config, CONFIG_BASE_KEY"/vcsdevice", "/dev/vcs");	
+	vcsa_device = econfig_get_string(config, CONFIG_BASE_KEY"/vcsadevice", "/dev/vcsa");
 
-	keys[0] = strdup(config_get_string( progname, "UpKey", 0, "Up"));
-	keys[1] = strdup(config_get_string( progname, "DownKey", 0, "Down"));
-	keys[2] = strdup(config_get_string( progname, "LeftKey", 0, "Left"));
-	keys[3] = strdup(config_get_string( progname, "RightKey", 0, "Right"));
+	keys[0] = econfig_get_string(config, CONFIG_BASE_KEY"/upkey", "Up");
+	keys[1] = econfig_get_string(config, CONFIG_BASE_KEY"/downkey", "Down");
+	keys[2] = econfig_get_string(config, CONFIG_BASE_KEY"/leftkey", "Left");
+	keys[3] = econfig_get_string(config, CONFIG_BASE_KEY"/rightkey", "Right");
+
+	econfig_close(config);
 
 	return 0;
 }

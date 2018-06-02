@@ -82,6 +82,10 @@ AX_CFLAGS_GCC_OPTION(-Wno-unused-function)
 AX_CFLAGS_GCC_OPTION(-ftrampolines)
 export CFLAGS
 
+dnl elektra
+AC_CHECK_LIB([elektra],[kdbOpen],,[AC_MSG_ERROR(elektra missing)])
+AC_CHECK_HEADERS(kdb.h)
+
 dnl Solaris
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
 AC_CHECK_FUNC(connect,,[AC_CHECK_LIB(socket,connect)])
