@@ -416,7 +416,7 @@ machine_get_procs(LinkedList * procs)
 	}
 
 	while ((procdir = readdir(proc))) {
-		char buf[128];
+		char buf[269];
 
 		/* ignore everything in proc except process ids */
 		if (!strchr("1234567890", procdir->d_name[0]))
