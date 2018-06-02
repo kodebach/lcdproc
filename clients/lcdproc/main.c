@@ -10,6 +10,8 @@
  *
  * This file is released under the GNU General Public License.
  * Refer to the COPYING file distributed with this package.
+ *
+ * TODO (kodebach): Copyright
  */
 
 #include <stdio.h>
@@ -36,7 +38,6 @@
 #include "mode.h"
 #include "shared/sockets.h"
 #include "shared/report.h"
-#include "shared/configfile.h"
 #include "getopt.h"		/* This is our local getopt.h! */
 
 /* Import screens */
@@ -70,6 +71,7 @@ static struct utsname unamebuf;
 static void HelpScreen(int exit_state);
 static void exit_program(int val);
 static void main_loop(void);
+static int process_command_line(int argc, char **argv);
 static int process_configfile(char *cfgfile);
 
 
@@ -126,6 +128,8 @@ char *configfile = NULL;
 char *pidfile = NULL;
 int pidfile_written = FALSE;
 char *displayname = NULL;	/**< display name for the main menu */
+
+static KeySet* config = NULL; // TODO (kodebach): document
 
 /** Returns the network name of this machine */
 const char *
@@ -194,9 +198,6 @@ clear_modes(void)
 int
 main(int argc, char **argv)
 {
-	int cfgresult;
-	int c;
-
 	/* set locale for cwdate & time formatting in chrono.c */
 	setlocale(LC_TIME, "");
 
@@ -213,61 +214,15 @@ main(int argc, char **argv)
 	signal(SIGPIPE, exit_program);	/* write to closed socket */
 	signal(SIGKILL, exit_program);	/* kill -9 [cannot be trapped; but ...] */
 
-	/* No error output from getopt */
-	opterr = 0;
-
-	/* get options from command line */
-	while ((c = getopt(argc, argv, "s:p:e:c:fhv")) > 0) {
-		char *end;
-
-		switch (c) {
-			/* c is for config file */
-			case 'c':
-				configfile = optarg;
-				break;
-			/* s is for server */
-			case 's':
-				server = optarg;
-				break;
-			/* p is for port */
-			case 'p':
-				port = strtol(optarg, &end, 0);
-				if ((*optarg == '\0') || (*end != '\0') ||
-				    (port <= 0) || (port >= 0xFFFF)) {
-					fprintf(stderr, "Illegal port value %s\n", optarg);
+	if (process_command_line(argc, argv) < 0) {
+		report (RPT_ERR, "Error parsing command line arguments");
 					exit(EXIT_FAILURE);
 				}
-				break;
-			case 'e':
-				islow = strtol(optarg, &end, 0);
-				if ((*optarg == '\0') || (*end != '\0') || (islow < 0)) {
-					fprintf(stderr, "Illegal delay value %s\n", optarg);
-					exit(EXIT_FAILURE);
-				}
-				break;
-			case 'f':
-				foreground = TRUE;
-				break;
-			case 'h':
-				HelpScreen(EXIT_SUCCESS);
-				break;
-			case 'v':
-				fprintf(stderr, "LCDproc %s\n", version);
-				exit(EXIT_SUCCESS);
-				break;
-			/* otherwise...  Get help! */
-			case '?':	/* unknown option or missing argument */
-				/* FALLTHROUGH */
-			default:
-				HelpScreen(EXIT_FAILURE);
-				break;
-		}
-	}
 
 	/* Read config file */
-	cfgresult = process_configfile(configfile);
+	int cfgresult = process_configfile(configfile);
 	if (cfgresult < 0) {
-		fprintf(stderr, "Error reading config file\n");
+		report (RPT_ERR, "Error reading config file\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -359,6 +314,64 @@ main(int argc, char **argv)
 	return EXIT_SUCCESS;
 }
 
+/* get options from command line */
+static int
+process_command_line(int argc, char **argv)
+{
+	int c;
+	int error = 0;
+
+	/* No error output from getopt */
+	opterr = 0;
+	while ((c = getopt(argc, argv, "s:p:e:c:fhv")) > 0) {
+		char *end;
+
+		switch (c) {
+			/* c is for config file */
+			case 'c':
+				configfile = optarg;
+				break;
+			/* s is for server */
+			case 's':
+				server = optarg;
+				break;
+			/* p is for port */
+			case 'p':
+				port = strtol(optarg, &end, 0);
+				if ((*optarg == '\0') || (*end != '\0') ||
+				    (port <= 0) || (port >= 0xFFFF)) {
+					report(RPT_ERR, "Illegal port value %s\n", optarg);
+					error = -1;
+				}
+				break;
+			case 'e':
+				islow = strtol(optarg, &end, 0);
+				if ((*optarg == '\0') || (*end != '\0') || (islow < 0)) {
+					report(RPT_ERR, "Illegal delay value %s\n", optarg);
+					error = -1;
+				}
+				break;
+			case 'f':
+				foreground = TRUE;
+				break;
+			case 'h':
+				HelpScreen(EXIT_SUCCESS);
+				break;
+			case 'v':
+				fprintf(stderr, "LCDproc %s\n", version);
+				exit(EXIT_SUCCESS);
+				break;
+			/* otherwise...  Get help! */
+			case '?':	/* unknown option or missing argument */
+				/* FALLTHROUGH */
+			default:
+				HelpScreen(EXIT_FAILURE);
+				break;
+		}
+	}
+
+	return error;
+}
 
 /**
  * Reads and parses configuration file.
@@ -370,43 +383,43 @@ main(int argc, char **argv)
 static int
 process_configfile(char *configfile)
 {
-	int k;
-	const char *tmp;
-
 	debug(RPT_DEBUG, "%s(%s)", __FUNCTION__, (configfile) ? configfile : "<null>");
 
 	/* Read config settings */
 
-	if (configfile == NULL) {
-		struct stat statbuf;
+// TODO (kodebach)
+//	if (configfile == NULL) {
+//		struct stat statbuf;
+//
+//		/*
+//		 * if default config file does not exist, do not consider
+//		 * this an error and continue
+//		 */
+//		if ((lstat(DEFAULT_CONFIGFILE, &statbuf) == -1) && (errno = ENOENT))
+//			return 0;
+//
+//		configfile = DEFAULT_CONFIGFILE;
+//	}
 
-		/*
-		 * if default config file does not exist, do not consider
-		 * this an error and continue
-		 */
-		if ((lstat(DEFAULT_CONFIGFILE, &statbuf) == -1) && (errno = ENOENT))
-			return 0;
-
-		configfile = DEFAULT_CONFIGFILE;
-	}
-
-	if (config_read_file(configfile) != 0) {
-		report(RPT_CRIT, "Could not read config file: %s", configfile);
+	if(strcmp(configfile, DEFAULT_CONFIGFILE) != 0) {
+		report( RPT_ERR, "currently unsupported"); // TODO (kodebach): support
 		return -1;
 	}
 
+	config = econfig_open(CONFIG_BASE_KEY);
+
 	if (server == NULL) {
-		server = strdup(config_get_string(progname, "Server", 0, DEFAULT_SERVER));
+		server = econfig_get_string(config, CONFIG_BASE_KEY"/general/server", DEFAULT_SERVER);
 	}
 	if (port == UNSET_INT) {
-		port = config_get_int(progname, "Port", 0, LCDPORT);
+		port = econfig_get_long(config, CONFIG_BASE_KEY"/general/port", LCDPORT);
 	}
 
 	if (report_level == UNSET_INT) {
-		report_level = config_get_int(progname, "ReportLevel", 0, RPT_WARNING);
+		report_level = econfig_get_long(config, CONFIG_BASE_KEY"/general/reportlevel", RPT_WARNING);
 	}
 	if (report_dest == UNSET_INT) {
-		if (config_get_bool(progname, "ReportToSyslog", 0, 0)) {
+		if (econfig_get_bool(config, CONFIG_BASE_KEY"/general/reporttosyslog", false)) {
 			report_dest = RPT_DEST_SYSLOG;
 		}
 		else {
@@ -414,33 +427,43 @@ process_configfile(char *configfile)
 		}
 	}
 	if (foreground != TRUE) {
-		foreground = config_get_bool(progname, "Foreground", 0, FALSE);
+		foreground = econfig_get_bool(config, CONFIG_BASE_KEY"/general/foreground", false);
 	}
 	if (pidfile == NULL) {
-		pidfile = strdup(config_get_string(progname, "PidFile", 0, DEFAULT_PIDFILE));
+		pidfile = econfig_get_string(config, CONFIG_BASE_KEY"/general/pidfile", DEFAULT_PIDFILE);
 	}
 	if (islow < 0) {
-		islow = config_get_int(progname, "Delay", 0, -1);
+		islow = econfig_get_long(config, CONFIG_BASE_KEY"/general/delay", -1);
 	}
 
-	if ((tmp = config_get_string(progname, "DisplayName", 0, NULL)) != NULL)
-		displayname = strdup(tmp);
+	displayname = econfig_get_string(config, CONFIG_BASE_KEY"/general/displayname", displayname);
 
 	/*
 	 * check for config file variables to override all the sequence
 	 * defaults
 	 */
-	for (k = 0; sequence[k].which != 0; k++) {
+	char* name = NULL;
+	for (int k = 0; sequence[k].which != 0; k++) {
 		if (sequence[k].longname != NULL) {
-			sequence[k].on_time = config_get_int(sequence[k].longname, "OnTime", 0, sequence[k].on_time);
-			sequence[k].off_time = config_get_int(sequence[k].longname, "OffTime", 0, sequence[k].off_time);
-			sequence[k].show_invisible = config_get_bool(sequence[k].longname, "ShowInvisible", 0, sequence[k].show_invisible);
-			if (config_get_bool(sequence[k].longname, "Active", 0, sequence[k].flags & ACTIVE))
+			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/ontime", sequence[k].longname);
+			sequence[k].on_time = econfig_get_long(config, name, sequence[k].on_time);
+
+			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/offtime", sequence[k].longname);
+			sequence[k].off_time = econfig_get_long(config, name, sequence[k].off_time);
+
+			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/showinvisible", sequence[k].longname);
+			sequence[k].show_invisible = econfig_get_bool(config, name, sequence[k].show_invisible);
+
+			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/active", sequence[k].longname);
+			if (econfig_get_bool(config, name, sequence[k].flags & ACTIVE)) {
 				sequence[k].flags |= ACTIVE;
-			else
+			}
+			else {
 				sequence[k].flags &= (~ACTIVE);
+			}
 		}
 	}
+	free(name);
 
 	return 1;
 }
@@ -493,6 +516,10 @@ HelpScreen(int exit_state)
 void
 exit_program(int val)
 {
+	if (config != NULL) {
+		econfig_close(config);
+	}
+
 #ifdef LCDPROC_EYEBOXONE
 	/*
 	 * Clear Eyebox Leds
@@ -685,14 +712,14 @@ main_loop(void)
 					if (sequence[i].timer >= sequence[i].on_time) {
 						sequence[i].timer = 0;
 						/* Now, update the screen... */
-						update_screen(&sequence[i], 1);
+						update_screen(&sequence[i], 1, config);
 					}
 				}
 				else {
 					if (sequence[i].timer >= sequence[i].off_time) {
 						sequence[i].timer = 0;
 						/* Now, update the screen... */
-						update_screen(&sequence[i], sequence[i].show_invisible);
+						update_screen(&sequence[i], sequence[i].show_invisible, config);
 					}
 				}
 				if (islow > 0)

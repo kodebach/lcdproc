@@ -69,7 +69,7 @@ static char *tickTime(char *time, int heartbeat);
  * \return  Always 0
  */
 int
-time_screen(int rep, int display, int *flags_ptr)
+time_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	char now[40];
 	char today[40];
@@ -86,8 +86,8 @@ time_screen(int rep, int display, int *flags_ptr)
 		*flags_ptr |= INITIALIZED;
 
 		/* get config values */
-		timeFormat = config_get_string("TimeDate", "TimeFormat", 0, "%H:%M:%S");
-		dateFormat = config_get_string("TimeDate", "DateFormat", 0, "%b %d %Y");
+		timeFormat = econfig_get_string(config, CONFIG_BASE_KEY"/screenmode/timedate/timeformat", "%H:%M:%S");
+		dateFormat = econfig_get_string(config, CONFIG_BASE_KEY"/screenmode/timedate/dateformat", "%b %d %Y");
 
 		sock_send_string(sock, "screen_add T\n");
 		sock_printf(sock, "screen_set T -name {Time Screen: %s}\n", get_hostname());
@@ -189,7 +189,7 @@ time_screen(int rep, int display, int *flags_ptr)
  * \return  Always 0
  */
 int
-clock_screen(int rep, int display, int *flags_ptr)
+clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	char now[40];
 	char today[40];
@@ -207,9 +207,9 @@ clock_screen(int rep, int display, int *flags_ptr)
 		*flags_ptr |= INITIALIZED;
 
 		/* get config values */
-		timeFormat = config_get_string("OldTime", "TimeFormat", 0, "%H:%M:%S");
-		dateFormat = config_get_string("OldTime", "DateFormat", 0, "%b %d %Y");
-		showTitle = config_get_bool("OldTime", "ShowTitle", 0, 1);
+		timeFormat = econfig_get_string(config, CONFIG_BASE_KEY"/screenmode/oldtime/timeformat", "%H:%M:%S");
+		dateFormat = econfig_get_string(config, CONFIG_BASE_KEY"/screenmode/oldtime/dateformat", "%b %d %Y");
+		showTitle = econfig_get_bool(config, CONFIG_BASE_KEY"/screenmode/oldtime/showtitle", 1);
 
 		sock_send_string(sock, "screen_add O\n");
 		sock_printf(sock, "screen_set O -name {Old Clock Screen: %s}\n", get_hostname());
@@ -300,7 +300,7 @@ clock_screen(int rep, int display, int *flags_ptr)
  * \return  Always 0
  */
 int
-uptime_screen(int rep, int display, int *flags_ptr)
+uptime_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	int xoffs;
 	int days, hour, min, sec;
@@ -392,7 +392,7 @@ uptime_screen(int rep, int display, int *flags_ptr)
  * \return  Always 0
  */
 int
-big_clock_screen(int rep, int display, int *flags_ptr)
+big_clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	time_t thetime;
 	struct tm *rtime;
@@ -483,7 +483,7 @@ big_clock_screen(int rep, int display, int *flags_ptr)
  * \return  Always 0
  */
 int
-mini_clock_screen(int rep, int display, int *flags_ptr)
+mini_clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	char now[40];
 	time_t thetime;
@@ -499,7 +499,7 @@ mini_clock_screen(int rep, int display, int *flags_ptr)
 		*flags_ptr |= INITIALIZED;
 
 		/* get config values */
-		timeFormat = config_get_string("MiniClock", "TimeFormat", 0, "%H:%M");
+		timeFormat = econfig_get_string(config, CONFIG_BASE_KEY"/screenmode/miniclock/timeformat", "%H:%M");
 
 		sock_send_string(sock, "screen_add N\n");
 		sock_send_string(sock, "screen_set N -name {Mini Clock Screen} -heartbeat off\n");

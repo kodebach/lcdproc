@@ -13,6 +13,9 @@
 #define MAIN_H
 
 #include "shared/defines.h"
+#include "shared/elektraconfig.h"
+
+#define CONFIG_BASE_KEY		"/sw/lcdproc/client/#0/current/lcdproc"
 
 #ifndef TRUE
 # define TRUE    1
@@ -53,7 +56,7 @@ typedef struct _screen_mode
 	int show_invisible;	/**< Send stats while not visible? */
 	int timer;		/**< Time since last update */
 	int flags;		/**< See mode flags defines */
-	int (*func)(int,int,int *);	/**< Pointer to init / update function */
+	int (*func)(int,int,int *,KeySet *);	/**< Pointer to init / update function */
 } ScreenMode;
 
 /* mode flags */

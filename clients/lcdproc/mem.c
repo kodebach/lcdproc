@@ -49,7 +49,7 @@
  * \return  Always 0
  */
 int
-mem_screen(int rep, int display, int *flags_ptr)
+mem_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	static int which_title = 0;
 	static int gauge_wid = 0;
@@ -261,7 +261,7 @@ sort_procs(void *a, void *b)
  * \return  Always 0
  */
 int
-mem_top_screen(int rep, int display, int *flags_ptr)
+mem_top_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	LinkedList *procs;
 	int i;

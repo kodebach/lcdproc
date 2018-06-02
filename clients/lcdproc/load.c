@@ -47,7 +47,7 @@
  * \return  The backlight state
  */
 int
-xload_screen(int rep, int display, int *flags_ptr)
+xload_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	static int gauge_hgt = 0;
 	static double loads[LCD_MAX_WIDTH];
@@ -61,8 +61,8 @@ xload_screen(int rep, int display, int *flags_ptr)
 		*flags_ptr |= INITIALIZED;
 
 		/* get config values */
-		lowLoad = config_get_float("Load", "LowLoad", 0, LOAD_MIN);
-		highLoad = config_get_float("Load", "HighLoad", 0, LOAD_MAX);
+		lowLoad = econfig_get_double(config, CONFIG_BASE_KEY"/screenmode/load/lowload", LOAD_MIN);
+		highLoad = econfig_get_double(config, CONFIG_BASE_KEY"/screenmode/load/highload", LOAD_MAX);
 
 		gauge_hgt = (lcd_hgt > 2) ? (lcd_hgt - 1) : lcd_hgt;
 		memset(loads, '\0', sizeof(double) * LCD_MAX_WIDTH);

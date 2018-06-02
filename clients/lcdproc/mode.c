@@ -61,7 +61,7 @@ mode_close(void)
  * \return  Backlight state
  */
 int
-update_screen(ScreenMode *m, int display)
+update_screen(ScreenMode *m, int display, KeySet* config)
 {
 	static int status = -1;
 	int old_status = status;
@@ -71,7 +71,7 @@ update_screen(ScreenMode *m, int display)
 		/* Save the initialized flag (may be modified by m->func) */
 		int init_flag = (m->flags & INITIALIZED);
 #endif
-		status = m->func(m->timer, display, &(m->flags));
+		status = m->func(m->timer, display, &(m->flags), config);
 #ifdef LCDPROC_EYEBOXONE
 		/* Eyebox Init */
 		if (init_flag == 0)
@@ -103,7 +103,7 @@ update_screen(ScreenMode *m, int display)
  * \return  Always 0
  */
 int
-credit_screen(int rep, int display, int *flags_ptr)
+credit_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	/*
 	 * List of persons who contributed to LCDproc. Keep in sync with

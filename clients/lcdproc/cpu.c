@@ -48,7 +48,7 @@
  * \return  Always 0
  */
 int
-cpu_screen(int rep, int display, int *flags_ptr)
+cpu_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 #undef CPU_BUF_SIZE
 #define CPU_BUF_SIZE 4
@@ -207,7 +207,7 @@ cpu_screen(int rep, int display, int *flags_ptr)
  * \return  Always 0
  */
 int
-cpu_graph_screen(int rep, int display, int *flags_ptr)
+cpu_graph_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 #undef CPU_BUF_SIZE
 #define CPU_BUF_SIZE 2

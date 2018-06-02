@@ -42,54 +42,60 @@ static int transfer_screen = 0;	/* by default, transfer screen is not shown */
  * \return  0 on success, -1 on error
  */
 static int
-iface_process_configfile(void)
+iface_read_config(KeySet* config)
 {
-	const char *unit;
-
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
 	/* Read config settings */
-	for (iface_count = 0; iface_count < MAX_INTERFACES; iface_count++) {
-		char iface_label[12];
+	char* name = NULL;
+	for (iface_count = 0; iface_count < MAX_INTERFACES; iface_count++) {		
+		econfig_name(name, CONFIG_BASE_KEY"/screenmode/iface/interface%i", iface_count);
 
-		sprintf(iface_label, "Interface%i", iface_count);
-		debug(RPT_DEBUG, "Label %s count %i", iface_label, iface_count);
-		iface[iface_count].name = strdup(config_get_string("Iface", iface_label, 0, ""));
+		debug(RPT_DEBUG, "Label %s count %i", name, iface_count);
+		iface[iface_count].name = econfig_get_string(config, name, "");
 		if (iface[iface_count].name == NULL) {
 			report(RPT_CRIT, "malloc failure");
 			return -1;
 		}
-		if (*iface[iface_count].name == '\0')
+		if (*iface[iface_count].name == '\0') {
 			break;
-		sprintf(iface_label, "Alias%i", iface_count);
-		iface[iface_count].alias = strdup(config_get_string("Iface", iface_label, 0, iface[iface_count].name));
-		if (iface[iface_count].alias == NULL)
+		}
+
+		econfig_name(name, CONFIG_BASE_KEY"/screenmode/iface/alias%i", iface_count);
+
+		iface[iface_count].alias = econfig_get_string(config, name, iface[iface_count].name);
+		if (iface[iface_count].alias == NULL) {
 			/*
 			 * make alias the same as the interface name in case
 			 * strdup() failed
 			 */
 			iface[iface_count].alias = iface[iface_count].name;
+		}
+
 		debug(RPT_DEBUG, "Interface %i: %s alias %s",
 		      iface_count, iface[iface_count].name, iface[iface_count].alias);
 	}
+	free(name);
 
-	unit = config_get_string("Iface", "Unit", 0, "byte");
-	if ((strcasecmp(unit, "byte") == 0) ||
-	    (strcasecmp(unit, "bytes") == 0))
-		strncpy(unit_label, "B", sizeof(unit_label));
-	else if ((strcasecmp(unit, "bit") == 0) ||
-		 (strcasecmp(unit, "bits") == 0))
-		strncpy(unit_label, "b", sizeof(unit_label));
-	else if ((strcasecmp(unit, "packet") == 0) ||
-		 (strcasecmp(unit, "packets") == 0))
-		strncpy(unit_label, "pkt", sizeof(unit_label));
-	else {
-		report(RPT_ERR, "illegal Unit value: %s", unit);
-		return -1;
+	const char* units[] = { "byte", "bytes", "bit", "bits", "packet", "packets" };
+	long int unit = econfig_get_enum(config, CONFIG_BASE_KEY"/screenmode/iface/unit", -1, 6, units);
+	switch(unit) {
+		case 0:
+		case 1: // byte(s)
+			strncpy(unit_label, "B", sizeof(unit_label));
+		case 2:
+		case 3: // bit(s)
+			strncpy(unit_label, "b", sizeof(unit_label));
+		case 4:
+		case 5: // packet(s)
+			strncpy(unit_label, "pkt", sizeof(unit_label));
+		default:
+			report(RPT_ERR, "illegal Unit value: %s", unit);
+			return -1;
 	}
 	unit_label[sizeof(unit_label) - 1] = '\0';
 
-	transfer_screen = config_get_bool("Iface", "Transfer", 0, 0);
+	transfer_screen = econfig_get_bool(config, CONFIG_BASE_KEY"/screenmode/iface/transfer", false);
 
 	return 0;
 }
@@ -116,7 +122,7 @@ iface_process_configfile(void)
  * \return  Always 0
  */
 int
-iface_screen(int rep, int display, int *flags_ptr)
+iface_screen(int rep, int display, int *flags_ptr, KeySet* config)
 {
 	/* interval since last update */
 	unsigned int interval = difftime(time(NULL), iface[0].last_online);
@@ -129,7 +135,7 @@ iface_screen(int rep, int display, int *flags_ptr)
 		*flags_ptr |= INITIALIZED;
 
 		/* get configuration options */
-		iface_process_configfile();
+		iface_read_config(config);
 
 		/* set initial speed screen with widgets */
 		initialize_speed_screen();
