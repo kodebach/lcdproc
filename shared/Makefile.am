@@ -6,7 +6,7 @@ libLCDstuff_a_SOURCES = LL.c LL.h sockets.c sockets.h str.c str.h elektraconfig.
 
 libLCDstuff_a_LIBADD = @LIBOBJS@
 
-AM_CPPFLAGS = -I$(top_srcdir)
+AM_CPPFLAGS = -I$(top_srcdir) -I$(top_srcdir)/include/elektra
 
 EXTRA_DIST = getopt.c getopt1.c getopt.h defines.h
 

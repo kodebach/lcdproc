@@ -18,7 +18,7 @@
 #include <stdlib.h>
 
 #include "shared/report.h"
-#include "shared/configfile.h"
+#include "shared/elektraconfig.h"
 #include "shared/sockets.h"
 
 #include "menu.h"
@@ -28,221 +28,304 @@
 static char *boolValueName[] = { "false", "true" };
 static char *triGrayValueName[] = { "off", "on", "gray" };
 
+/* types for command parameters */
+static const char* paramTypes[] = {"slider", "ring", "numeric", "alpha", "ip", "checkbox"};
 
-/** recursively read the menu hierarchy */
-MenuEntry *menu_read(MenuEntry *parent, const char *name)
+static int id = 0;
+
+int entry_read_callback(KeySet* config, size_t index, Key* element, void* userdata);
+int param_read_callback(KeySet* config, size_t index, Key* element, void* userdata);
+
+MenuEntry* param_read(KeySet* config, Key* element);
+MenuEntry* entry_read(KeySet* config, Key* element);
+MenuEntry* menu_read(KeySet* config, Key* element);
+
+
+MenuEntry* param_read(KeySet* config, Key* element)
 {
-	static int id = 0;
-
-	if ((name != NULL) && (config_has_section(name))) {
-		MenuEntry *me = calloc(1, sizeof(MenuEntry)); // auto-NULL elements
-
-		if (me == NULL)
-			return NULL;
-		// set common entries
-		me->id = id++;
-		me->name = strdup(name);
-		if (me->name == NULL) {
-			//menu_free(me);
-			return NULL;
-		}
-
-		me->displayname = strdup(config_get_string(name, "DisplayName", 0, name));
-		if (me->displayname == NULL) {
-			//menu_free(me);
-			return NULL;
-		}
-
-		me->parent = parent;
-		me->next = NULL;
-		me->children = NULL;
-		me->numChildren = 0;
-
-		if (config_get_string(name, "Entry", 0, NULL) != NULL) {
-			MenuEntry **addr = &me->children;
-			const char *entryname;
-
-			// it is a sub-menu
-			me->type = MT_MENU;
-
-			// read menu entries
-			while ((entryname = config_get_string(name, "Entry", me->numChildren, NULL)) != NULL) {
-				MenuEntry *entry = menu_read(me, entryname);
-
-				if (entry == NULL) {
-					//menu_free(me);
-					return NULL;
-				}
-
-				me->numChildren++;
-
-				*addr = entry;
-				addr = &entry->next;
-			}
-		}
-		else if (config_get_string(name, "Exec", 0, NULL) != NULL) {
-			MenuEntry **addr = &me->children;
-			const char *entryname;
-
-			// it's a command to execute
-			me->type = MT_EXEC;
-
-			me->data.exec.command = strdup(config_get_string(name, "Exec", 0, ""));
-			if (me->data.exec.command == NULL) {
-				//menu_free(me);
-				return NULL;
-			}
-			me->data.exec.feedback = config_get_bool(name, "Feedback", 0, 0);
-
-			// try to read parameters
-			while ((entryname = config_get_string(name, "Parameter", me->numChildren, NULL)) != NULL) {
-				MenuEntry *entry = menu_read(me, entryname);
-
-				if (entry == NULL) {
-					//menu_free(me);
-					return NULL;
-				}
-
-				me->numChildren++;
-
-				*addr = entry;
-				addr = &entry->next;
-			}
-
-			// automagically add an "Apply ?" action
-			if ((me->numChildren > 0) && (addr != NULL))
-				*addr = menu_read(me, NULL);
-		}
-		else if (config_get_string(name, "Type", 0, NULL) != NULL) {
-			// it's a command parameter
-			const char *type;
-
-			type = config_get_string(name, "Type", 0, "");
-
-			if (strcasecmp(type, "slider") == 0) {
-				char buf[35];
-
-				me->type = MT_ARG_SLIDER;
-
-				me->data.slider.value = config_get_int(name, "Value", 0, 0);
-				me->data.slider.minval = config_get_int(name, "MinValue", 0, 0);
-				me->data.slider.maxval = config_get_int(name, "MaxValue", 0, 1000);
-
-				sprintf(buf, "%d", me->data.slider.minval);
-				me->data.slider.mintext = strdup(config_get_string(name, "MinText", 0, buf));
-				sprintf(buf, "%d", me->data.slider.maxval);
-				me->data.slider.maxtext = strdup(config_get_string(name, "MaxText", 0, buf));
-
-				me->data.slider.stepsize = config_get_int(name, "StepSize", 0, 1);
-			}
-			else if (strcasecmp(type, "ring") == 0) {
-				const char *tmp;
-				int numStrings = 0;
-				int i = 0;
-
-				me->type = MT_ARG_RING;
-
-				me->data.ring.value = config_get_int(name, "Value", 0, 0);
-				numStrings = config_has_key(name, "String");
-				me->data.ring.strings = calloc(sizeof(char *), numStrings+1);
-				me->data.ring.strings[numStrings] = NULL;
-
-				while ((tmp = config_get_string(name, "String", i, NULL)) != NULL) {
-					me->data.ring.strings[i] = strdup(tmp);
-					i++;
-				}
-				me->data.ring.strings[i] = NULL;
-			}
-			else if (strcasecmp(type, "numeric") == 0) {
-				me->type = MT_ARG_NUMERIC;
-
-				me->data.numeric.value = config_get_int(name, "Value", 0, 0);
-				me->data.numeric.minval = config_get_int(name, "MinValue", 0, 0);
-				me->data.numeric.maxval = config_get_int(name, "MaxValue", 0, 1000);
-			}
-			else if (strcasecmp(type, "alpha") == 0) {
-				me->type = MT_ARG_ALPHA;
-
-				me->data.alpha.value = strdup(config_get_string(name, "Value", 0, ""));
-				me->data.alpha.minlen = config_get_int(name, "MinLength", 0, 0);
-				me->data.alpha.maxlen = config_get_int(name, "MaxLength", 0, 100);
-				me->data.alpha.allowed = strdup(config_get_string(name, "AllowedChars", 0,
-										  "ABCDEFGHIJKLMNOPQRSTUVWXYZ"));
-			}
-			else if (strcasecmp(type, "ip") == 0) {
-				me->type = MT_ARG_IP;
-
-				me->data.ip.value = strdup(config_get_string(name, "Value", 0, ""));
-				me->data.ip.v6 = config_get_bool(name, "Value", 0, 0);
-			}
-			else if (strcasecmp(type, "checkbox") == 0) {
-				const char *tmp;
-
-				me->type = MT_ARG_CHECKBOX;
-
-				me->data.checkbox.allow_gray = config_get_bool(name, "AllowGray", 0, 0);
-				me->data.checkbox.value = (me->data.checkbox.allow_gray)
-				                          ? config_get_tristate(name, "Value", 0, "gray", 0)
-				                          : config_get_bool(name, "Value", 0, 0);
-				// get replacement strings for different values
-				tmp = config_get_string(name, "OffText", 0, NULL);
-				me->data.checkbox.map[0] = (tmp != NULL) ? strdup(tmp) : NULL;
-				tmp = config_get_string(name, "OnText", 0, NULL);
-				me->data.checkbox.map[1] = (tmp != NULL) ? strdup(tmp) : NULL;
-				tmp = config_get_string(name, "GrayText", 0, NULL);
-				me->data.checkbox.map[2] = (tmp != NULL) ? strdup(tmp) : NULL;
-			}
-			else {
-				report(RPT_DEBUG, "illegal parameter type");
-				//menu_free(me);
-				return NULL;
-			}
-		}
-		else {
-			report(RPT_DEBUG, "unknown menu entry type");
-			//menu_free(me);
-			return NULL;
-		}
-
-		return me;
-	}
-	else {
-		/* the magic stuff: if name is NULL and parent is an EXEC entry,
-		 * then generate an Action entry with the name "Apply" */
-		if ((name == NULL) && (parent != NULL) && (parent->type = MT_EXEC)) {
-			MenuEntry *me = calloc(1, sizeof(MenuEntry)); // auto-NULL elements
-
-			if (me == NULL)
-				return NULL;
-			// set common entries
-			me->id = id++;
-			me->name = malloc(strlen(parent->name) + 10);
-			if (me->name == NULL) {
-				//menu_free(me);
-				return NULL;
-			}
-			strcpy(me->name, "Apply_");
-			strcat(me->name, parent->name);
-
-			me->displayname = strdup("Apply!");
-			if (me->displayname == NULL) {
-				//menu_free(me);
-				return NULL;
-			}
-
-			me->parent = parent;
-			me->next = NULL;
-			me->children = NULL;
-			me->numChildren = 0;
-			me->type = MT_ACTION;
-
-			return me;
-		}
+	MenuEntry* param = calloc(1, sizeof(MenuEntry));
+	if(param == NULL) {
+		return NULL;
 	}
 
-	return NULL;
+	param->id = id++;
+	param->name = strdup(keyBaseName(element));
+
+	keyAddBaseName(element, "type");
+	long int type = econfig_get_enum(config, keyName(element), -1, 6, paramTypes);
+	switch(type) {
+		case 0: // slider
+			param->type = MT_ARG_SLIDER;
+
+			keySetBaseName(element, "value");
+			param->data.slider.value = econfig_get_long(config, keyName(element), 0);
+
+			keySetBaseName(element, "minvalue");			
+			param->data.slider.minval = econfig_get_long(config, keyName(element), 0);
+
+			keySetBaseName(element, "maxvalue");			
+			param->data.slider.maxval = econfig_get_long(config, keyName(element), 1000);
+
+			char buf[35];
+			snprintf(buf, 34, "%d", param->data.slider.minval);
+			keySetBaseName(element, "mintext");
+			param->data.slider.mintext = econfig_get_string(config, keyName(element), buf);
+
+			snprintf(buf, 34, "%d", param->data.slider.maxval);
+			keySetBaseName(element, "maxtext");			
+			param->data.slider.maxtext = econfig_get_string(config, keyName(element), buf);
+
+			keySetBaseName(element, "stepsize");			
+			param->data.slider.stepsize = econfig_get_long(config, keyName(element), 1);
+			break;
+		case 1: // ring
+			param->type = MT_ARG_RING;
+
+			keySetBaseName(element, "value");
+			param->data.ring.value = econfig_get_long(config, keyName(element), 0);
+			
+			keySetBaseName(element, "string");
+			size_t numStrings = econfig_array_size(config, keyName(element));
+			param->data.ring.strings = calloc(sizeof(char *), numStrings+1);
+			param->data.ring.strings[numStrings] = NULL;
+
+			char nameBuf[32];
+			for(size_t i = 0; i < numStrings; i++)
+			{
+				snprintf(nameBuf, 31, "#%li", i);
+				keySetBaseName(element, nameBuf);
+				param->data.ring.strings[i] = econfig_get_string(config, keyName(element), NULL);
+			}
+			break;
+		case 2: // numeric
+			param->type = MT_ARG_NUMERIC;
+
+			keySetBaseName(element, "value");
+			param->data.numeric.value = econfig_get_long(config, keyName(element), 0);
+
+			keySetBaseName(element, "minvalue");
+			param->data.numeric.minval = econfig_get_long(config, keyName(element), 0);
+
+			keySetBaseName(element, "maxvalue");
+			param->data.numeric.minval = econfig_get_long(config, keyName(element), 1000);
+			break;
+		case 3: // alpha
+			param->type = MT_ARG_ALPHA;
+
+			keySetBaseName(element, "value");
+			param->data.alpha.value = econfig_get_string(config, keyName(element), "");
+			
+			keySetBaseName(element, "minlength");
+			param->data.alpha.minlen = econfig_get_long(config, keyName(element), 0);
+
+			keySetBaseName(element, "maxlength");
+			param->data.alpha.maxlen = econfig_get_long(config, keyName(element), 100);
+
+			keySetBaseName(element, "allowedchars");
+			param->data.alpha.allowed = econfig_get_string(config, keyName(element), "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+			break;
+		case 4: // ip
+			param->type = MT_ARG_IP;
+
+			keySetBaseName(element, "value");
+			param->data.ip.value = econfig_get_string(config, keyName(element), "");
+			
+			keySetBaseName(element, "v6");
+			param->data.ip.v6 = econfig_get_bool(config, keyName(element), false);
+			break;
+		case 5: // checkbox
+			param->type = MT_ARG_CHECKBOX;
+
+			keySetBaseName(element, "allowgray");
+			param->data.checkbox.allow_gray = econfig_get_bool(config, keyName(element), false);
+
+			keySetBaseName(element, "value");
+			const char* values[] = {"off", "on", "gray"};
+			param->data.checkbox.value = econfig_get_enum(config, keyName(element), 0, 3, values);
+
+			if(!param->data.checkbox.allow_gray && param->data.checkbox.value == 2) {
+				param->data.checkbox.value = 0;
+			}
+
+			// get replacement strings for different values
+			keySetBaseName(element, "offtext");
+			param->data.checkbox.map[0] = econfig_get_string(config, keyName(element), NULL);
+
+			keySetBaseName(element, "ontext");
+			param->data.checkbox.map[1] = econfig_get_string(config, keyName(element), NULL);
+
+			keySetBaseName(element, "graytext");
+			param->data.checkbox.map[2] = econfig_get_string(config, keyName(element), NULL);
+			break;
+		default:
+			report(RPT_DEBUG, "illegal parameter type");
+			return NULL;
+	}
+
+	return param;
 }
 
+int param_read_callback(KeySet* config, size_t index, Key* element, void* userdata)
+{
+	const char* paramName = econfig_get_string(config, keyName(element), NULL);
+	if (paramName == NULL) {
+		return -1;
+	}
+
+	Key* paramKey = ksLookupByName(config, paramName, 0);
+	MenuEntry* param = param_read(config, paramKey);
+	keyDel(paramKey);
+
+	MenuEntry *entry = (MenuEntry*) userdata;	
+	
+	entry->numChildren++; // TODO (kodebach): add param to entry->children	
+
+	return 0;
+}
+
+MenuEntry* entry_read(KeySet* config, Key* element)
+{
+	MenuEntry* entry = calloc(1, sizeof(MenuEntry));
+	if (entry == NULL) {
+		return NULL;
+	}
+
+	entry->type = MT_EXEC;
+	entry->id = id++;
+	entry->name = strdup(keyBaseName(element));
+
+	keyAddBaseName(element, "exec");
+	char* exec = econfig_get_string(config, keyName(element), NULL);
+	entry->data.exec.command = exec;
+
+	keySetBaseName(element, "displayname");
+	entry->displayname = econfig_get_string(config, keyName(element), NULL);
+	if (entry->displayname == NULL) {
+		entry->displayname = strdup(entry->name);
+	}
+
+	keySetBaseName(element, "feedback");
+	entry->data.exec.feedback = econfig_get_bool(config, keyName(element), false);
+
+	entry->next = NULL;
+	entry->children = NULL;
+	entry->numChildren = 0;
+
+	keySetBaseName(element, "param");
+	if (econfig_array_iterate(config, keyName(element), param_read_callback, entry) < 0) {
+		menu_free(entry);
+		return NULL;
+	}
+
+	// add an "Apply_?" action
+	MenuEntry **addr = &entry->children;
+	if ((entry->numChildren > 0) && (addr != NULL)) {
+		MenuEntry *apply = calloc(1, sizeof(MenuEntry)); // auto-NULL elements
+
+		if (apply == NULL) {
+			menu_free(entry);
+			return NULL;
+		}
+
+		apply->type = MT_ACTION;
+		apply->id = id++;
+		apply->name = malloc(strlen(entry->name) + 10);
+		if (apply->name == NULL) {
+			menu_free(apply);
+			menu_free(entry);
+			return NULL;
+		}
+		strcpy(apply->name, "Apply_");
+		strcat(apply->name, entry->name);
+
+		apply->displayname = strdup("Apply!");
+		if (apply->displayname == NULL) {
+			menu_free(apply);
+			menu_free(entry);
+			return NULL;
+		}
+
+		apply->parent = entry;
+		apply->next = NULL;
+		apply->children = NULL;
+		apply->numChildren = 0;
+
+		*addr = apply;
+	}
+
+	return entry;
+}
+
+int entry_read_callback(KeySet* config, size_t index, Key* element, void* userdata)
+{
+	MenuEntry* menu = (MenuEntry*) userdata;
+
+	MenuEntry* entryOrSubMenu; // entry or submenu
+
+	keyAddBaseName(element, "exec");
+	if (econfig_exists(config, keyName(element))) {
+		// submenu
+		entryOrSubMenu = menu_read(config, element);
+	} else {
+		// command
+		entryOrSubMenu = entry_read(config, element);
+	}
+
+	if(entryOrSubMenu == NULL) {
+		return -1;
+	}
+
+	menu->numChildren++; // TODO (kodebach): add entryOrSubMenu to menu->children
+
+	return 0;
+}
+
+MenuEntry* menu_read(KeySet* config, Key* element)
+{
+	MenuEntry* menu = calloc(1, sizeof(MenuEntry));
+	if(menu == NULL) {
+		return NULL;
+	}
+
+	menu->type = MT_MENU;
+	menu->id = id++;
+	menu->name = strdup(keyBaseName(element));
+
+	keyAddBaseName(element, "displayname");
+	menu->displayname = econfig_get_string(config, keyName(element), NULL);
+	if (menu->displayname == NULL) {
+		menu->displayname = strdup(menu->name);
+	}
+
+	keySetBaseName(element, "menu");
+	if(!econfig_array_iterate(config, keyName(element), entry_read_callback, menu)) {
+		menu_free(menu);
+		return NULL;
+	}
+
+	return menu;
+}
+
+MenuEntry* main_menu_read(KeySet* config, const char *name)
+{
+	id = 0; // reset id
+
+	MenuEntry* menu = calloc(1, sizeof(MenuEntry));
+	if(menu == NULL) {
+		return NULL;
+	}
+
+	menu->type = MT_MENU;
+	menu->id = id++;
+	menu->name = strdup(name);
+
+	if(!econfig_array_iterate(config, name, entry_read_callback, menu)) {
+		menu_free(menu);
+		return NULL;
+	}
+
+	return menu;
+}
 
 /** create LCDproc commands for the menu entry hierarchy and send it to the server */
 int menu_sock_send(MenuEntry *me, MenuEntry *parent, int sock)

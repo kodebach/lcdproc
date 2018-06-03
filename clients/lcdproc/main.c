@@ -120,7 +120,7 @@ ScreenMode sequence[] =
 static int islow = -1;		/**< pause after mode update (in 1/100s) */
 char *progname = "lcdproc";
 char *server = NULL;
-int port = LCDPORT;
+int port = UNSET_INT;
 int foreground = FALSE;
 static int report_level = UNSET_INT;
 static int report_dest = UNSET_INT;
@@ -401,7 +401,7 @@ process_configfile(char *configfile)
 //		configfile = DEFAULT_CONFIGFILE;
 //	}
 
-	if(strcmp(configfile, DEFAULT_CONFIGFILE) != 0) {
+	if(configfile != NULL && strcmp(configfile, DEFAULT_CONFIGFILE) != 0) {
 		report( RPT_ERR, "currently unsupported"); // TODO (kodebach): support
 		return -1;
 	}
@@ -442,28 +442,33 @@ process_configfile(char *configfile)
 	 * check for config file variables to override all the sequence
 	 * defaults
 	 */
-	char* name = NULL;
+	Key* nameKey = keyNew(CONFIG_BASE_KEY"/sequence", KEY_END); // only used for string manipulation
+	keyAddBaseName(nameKey, "(longname)");
 	for (int k = 0; sequence[k].which != 0; k++) {
 		if (sequence[k].longname != NULL) {
-			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/ontime", sequence[k].longname);
-			sequence[k].on_time = econfig_get_long(config, name, sequence[k].on_time);
+			keySetBaseName(nameKey, sequence[k].longname);
 
-			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/offtime", sequence[k].longname);
-			sequence[k].off_time = econfig_get_long(config, name, sequence[k].off_time);
+			keyAddBaseName(nameKey, "ontime");
+			sequence[k].on_time = econfig_get_long(config, keyName(nameKey), sequence[k].on_time);
 
-			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/showinvisible", sequence[k].longname);
-			sequence[k].show_invisible = econfig_get_bool(config, name, sequence[k].show_invisible);
+			keySetBaseName(nameKey, "offtime");
+			sequence[k].off_time = econfig_get_long(config, keyName(nameKey), sequence[k].off_time);
 
-			econfig_name(name, CONFIG_BASE_KEY"/sequence/%s/active", sequence[k].longname);
-			if (econfig_get_bool(config, name, sequence[k].flags & ACTIVE)) {
+			keySetBaseName(nameKey, "showinvisible");
+			sequence[k].show_invisible = econfig_get_bool(config, keyName(nameKey), sequence[k].show_invisible);
+
+			keySetBaseName(nameKey, "active");
+			if (econfig_get_bool(config, keyName(nameKey), sequence[k].flags & ACTIVE)) {
 				sequence[k].flags |= ACTIVE;
 			}
 			else {
 				sequence[k].flags &= (~ACTIVE);
 			}
+
+			keySetBaseName(nameKey, NULL); // remove sequence[k].longname
 		}
 	}
-	free(name);
+	keyDel(nameKey);
 
 	return 1;
 }

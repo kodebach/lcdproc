@@ -5,6 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <kdbease.h>
 
 KeySet* econfig_open(const char* baseKeyName)
 {
@@ -25,25 +26,24 @@ KeySet* econfig_open(const char* baseKeyName)
     return config;
 }
 
-void econfig_close(KeySet* config) {
+void econfig_close(KeySet* config)
+{
     ksDel(config);
 }
 
-// TODO (kodebach): documentation; name == NULL or returned by malloc/realloc/calloc/econfig_name MUST free
-char* econfig_name(char* name, const char* fmt, ...) {
-    // TODO (kodebach): error handling
-    va_list args, argsCopy;
-    va_start(args, fmt);
-    va_copy(argsCopy, args);
+bool econfig_exists(KeySet* config, const char* keyName)
+{
+	Key* key = ksLookupByName(config, keyName, 0);
 
-    size_t len = vsnprintf(NULL, 0, fmt, args);
-    name = realloc(name, len + 1);
-    va_end(args);
+	if (key == NULL) {
+		keyDel(key);
+		return false;
+	}
 
-    vsnprintf(name, len, fmt, argsCopy);
-    va_end(argsCopy);
-
-    return name;
+	const char* value = keyString(key);
+	keyDel(key);
+	
+	return value != NULL;
 }
 
 char* econfig_get_string(KeySet* config, const char* keyName, char* default_value)
@@ -151,4 +151,58 @@ long int econfig_get_enum(KeySet* config, const char* keyName, const int default
 	
 
 	return default_value;
+}
+
+int econfig_array_iterate(KeySet* config, const char* arrayKeyName, econfig_iterate_callback callback, void* userdata)
+{
+	Key* key = ksLookupByName(config, arrayKeyName, 0);
+	if (key == NULL) {
+		return -1;
+	}
+	
+	KeySet* array = elektraArrayGet(key, config);
+	keyDel(key);
+	
+	if(array == NULL) {
+		return -1;
+	}
+	
+	size_t size = (size_t) ksGetSize(array);
+
+	Key* current;
+	ksRewind(array);
+	size_t index = 0;
+	while((current = ksNext(array)) != NULL) {
+		int ret = callback(config, index, current, userdata);
+		if (ret < 0) {
+			ksDel(array);
+			keyDel(current);
+			return ret;
+		}
+		index++;
+	}
+
+	ksDel(array);	
+	keyDel(current);
+	return size;
+}
+
+size_t econfig_array_size(KeySet* config, const char* arrayKeyName)
+{
+		Key* key = ksLookupByName(config, arrayKeyName, 0);
+	if (key == NULL) {
+		return -1;
+	}
+	
+	KeySet* array = elektraArrayGet(key, config);
+	keyDel(key);
+	
+	if(array == NULL) {
+		return -1;
+	}
+	
+	size_t size = (size_t) ksGetSize(array);
+
+	ksDel(array);	
+	return size;
 }

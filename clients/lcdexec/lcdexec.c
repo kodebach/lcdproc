@@ -26,7 +26,7 @@
 
 #include "shared/str.h"
 #include "shared/report.h"
-#include "shared/configfile.h"
+#include "shared/elektraconfig.h"
 #include "shared/sockets.h"
 
 #include "menu.h"
@@ -115,6 +115,7 @@ static int main_loop(void);
 #define CHAIN(e,f) { if (e>=0) { e=(f); }}
 #define CHAIN_END(e) { if (e<0) { report(RPT_CRIT,"Critical error, abort"); exit(e); }}
 
+#define CONFIG_BASE_KEY "/sw/lcdproc/client/#0/current/lcdexec"
 
 int main(int argc, char **argv)
 {
@@ -122,8 +123,9 @@ int main(int argc, char **argv)
 	struct sigaction sa;
 
 	CHAIN(error, process_command_line(argc, argv));
-	if (configfile == NULL)
+	if (configfile == NULL) {
 		configfile = DEFAULT_CONFIGFILE;
+	}
 	CHAIN(error, process_configfile(configfile));
 
 	if (report_dest == UNSET_INT || report_level == UNSET_INT) {
@@ -286,55 +288,58 @@ static int process_command_line(int argc, char **argv)
 
 static int process_configfile(char *configfile)
 {
-	const char *tmp;
-
-	if (configfile == NULL)
+	if (configfile == NULL) {
 		configfile = DEFAULT_CONFIGFILE;
-
-	if (config_read_file(configfile) < 0) {
-		report(RPT_WARNING, "Could not read config file: %s", configfile);
 	}
+
+	if(strcmp(configfile, DEFAULT_CONFIGFILE) != 0) {
+		report( RPT_ERR, "currently unsupported"); // TODO (kodebach): support
+		return -1;
+	}
+
+	KeySet* config = econfig_open(CONFIG_BASE_KEY);
 
 	if (address == NULL) {
-		address = strdup(config_get_string(progname, "Address", 0, "localhost"));
+		address = econfig_get_string(config, CONFIG_BASE_KEY"/general/address", "localhost");
 	}
 	if (port == UNSET_INT) {
-		port = config_get_int(progname, "Port", 0, 13666);
+		port = econfig_get_long(config, CONFIG_BASE_KEY"/general/port", 13666);
 	}
 	if (report_level == UNSET_INT) {
-		report_level = config_get_int(progname, "ReportLevel", 0, RPT_WARNING);
+		report_level = econfig_get_long(config, CONFIG_BASE_KEY"/general/reportlevel", RPT_WARNING);
 	}
+
 	if (report_dest == UNSET_INT) {
-		report_dest = (config_get_bool(progname, "ReportToSyslog", 0, 0))
+		report_dest = econfig_get_bool(config, CONFIG_BASE_KEY"/general/reporttosyslog", 0)
 				? RPT_DEST_SYSLOG
 				: RPT_DEST_STDERR;
 	}
-	if (foreground != TRUE) {
-		foreground = config_get_bool(progname, "Foreground", 0, FALSE);
+	if (!foreground) {
+		foreground = econfig_get_bool(config, CONFIG_BASE_KEY"/general/foreground", false);
 	}
 	if (pidfile == NULL) {
-		pidfile = strdup(config_get_string(progname, "PidFile", 0, DEFAULT_PIDFILE));
+		pidfile = econfig_get_string(config, CONFIG_BASE_KEY"/general/pidfile", DEFAULT_PIDFILE);
 	}
 
-	if ((tmp = config_get_string(progname, "DisplayName", 0, NULL)) != NULL)
-		displayname = strdup(tmp);
+	displayname = econfig_get_string(config, CONFIG_BASE_KEY"/general/displayname", displayname);
 
 	/* try to find a shell that understands the -c COMMAND syntax */
-	if ((tmp = config_get_string(progname, "Shell", 0, NULL)) != NULL)
-		default_shell = strdup(tmp);
-	else {
-		/* 1st fallback: SHELL environment variable */
+	default_shell = econfig_get_string(config, CONFIG_BASE_KEY"/general/shell", NULL);
+
+	/* 1st fallback: SHELL environment variable */
+	if (default_shell == NULL) {
 		report(RPT_WARNING, "Shell not set in configuration, falling back to variable SHELL");
 		default_shell = getenv("SHELL");
-
-		/* 2nd fallback: /bin/sh */
-		if (default_shell == NULL) {
-			report(RPT_WARNING, "variable SHELL not set, falling back to /bin/sh");
-			default_shell = "/bin/sh";
-		}
+	}
+	
+	/* 2nd fallback: /bin/sh */
+	if (default_shell == NULL) {
+		report(RPT_WARNING, "variable SHELL not set, falling back to /bin/sh");
+		default_shell = "/bin/sh";
 	}
 
-	main_menu = menu_read(NULL, "MainMenu");
+	main_menu = main_menu_read(config, CONFIG_BASE_KEY"/menu/main");
+
 #if defined(DEBUG)
 	menu_dump(main_menu);
 #endif
@@ -344,6 +349,8 @@ static int process_configfile(char *configfile)
 		report(RPT_ERR, "no main menu found in configuration");
 		return -1;
 	}
+
+	econfig_close(config);
 
 	return 0;
 }

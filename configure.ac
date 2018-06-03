@@ -85,6 +85,8 @@ export CFLAGS
 dnl elektra
 AC_CHECK_LIB([elektra],[kdbOpen],,[AC_MSG_ERROR(elektra missing)])
 AC_CHECK_HEADERS(kdb.h)
+AC_CHECK_LIB([elektra-ease],[elektraArrayGet],,[AC_MSG_ERROR(elektra-ease missing)])
+AC_CHECK_HEADERS(kdbease.h)
 
 dnl Solaris
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
