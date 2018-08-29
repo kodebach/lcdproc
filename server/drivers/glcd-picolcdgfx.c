@@ -138,12 +138,10 @@ glcd_picolcdgfx_init(Driver *drvthis)
 	memset(ct_data->backingstore, 0xFF, p->framebuf.size);
 
 	/* Get key timeout */
-	ct_data->keytimeout = drvthis->config_get_int(drvthis->name,
-						      "picolcdgfx_KeyTimeout", 0,
-						      PICOLCDGFX_DEF_KEYTIMEOUT);
+	ct_data->keytimeout = drvthis->config_get_long(drvthis, "picolcdgfx_keytimeout", PICOLCDGFX_DEF_KEYTIMEOUT);
 
 	/* Get inverted option */
-	if (drvthis->config_get_bool(drvthis->name, "picolcdgfx_Inverted", 0, PICOLCDGFX_DEF_INVERTED))
+	if (drvthis->config_get_bool(drvthis, "picolcdgfx_inverted", PICOLCDGFX_DEF_INVERTED))
 		ct_data->inverted = 0xFF;
 	else
 		ct_data->inverted = 0;

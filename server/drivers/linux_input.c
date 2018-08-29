@@ -88,7 +88,7 @@ MODULE_EXPORT int
 linuxInput_init (Driver *drvthis)
 {
 	PrivateData *p;
-	const char *s;
+	char *s;
 	struct keycode *key;
 	int i;
 
@@ -109,8 +109,7 @@ linuxInput_init (Driver *drvthis)
 	/* Read config file */
 
 	/* What device should be used */
-	s = drvthis->config_get_string(drvthis->name, "Device", 0,
-						   LINUXINPUT_DEFAULT_DEVICE);
+	s = drvthis->config_get_string(drvthis, "device", LINUXINPUT_DEFAULT_DEVICE);
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, s);
 
 
@@ -120,13 +119,25 @@ linuxInput_init (Driver *drvthis)
 		return -1;
 	}
 
-	for (i = 0; (s = drvthis->config_get_string(drvthis->name, "key", i, NULL)) != NULL; i++) {
+	char buf[20];
+	i = 0;
+	while(1) {
+		snprintf(buf, 10, "key/#%d", i);
+		s = drvthis->config_get_string(drvthis, buf, NULL);
+		if(s == NULL) {
+			break;
+		}
+
 		if ((key = keycode_create(s)) == NULL) {
 			report(RPT_ERR, "%s: parsing configvalue '%s' failed",
 					drvthis->name, s);
 			continue;
 		}
 		LL_AddNode(p->buttonmap, key);
+
+		free(s);
+
+		i++;
 	}
 
 	report(RPT_DEBUG, "%s: init() done", drvthis->name);

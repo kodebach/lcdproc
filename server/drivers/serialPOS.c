@@ -132,7 +132,36 @@
 MODULE_EXPORT char* api_version = API_VERSION;
 MODULE_EXPORT int stay_in_foreground = 0;
 MODULE_EXPORT int supports_multiple = 1;
-MODULE_EXPORT char* symbol_prefix = "serialPOS_";
+MODULE_EXPORT char *symbol_prefix = "serialPOS_";
+
+static void serialPOS_hardware_init(Driver *drvthis);
+static void serialPOS_hardware_clear(Driver *drvthis);
+static void serialPOS_linewrap(Driver *drvthis, int on);
+static void serialPOS_autoscroll(Driver *drvthis, int on);
+static void serialPOS_cursorblink(Driver *drvthis, int on);
+static void serialPOS_cursor_goto(Driver *drvthis, int x, int y);
+
+
+/* Parse one key from the configfile */
+static char
+serialPOS_parse_keypad_setting (Driver *drvthis, char *keyname, char default_value)
+{
+	char return_val = 0;
+	char *s;
+	char buf[255];
+
+	s = drvthis->config_get_string(drvthis, keyname, NULL);
+	if (s != NULL) {
+		strncpy(buf, s, sizeof(buf));
+		free(s);
+		buf[sizeof(buf)-1] = '\0';
+		return_val = buf[0];
+	} else {
+		return_val = default_value;
+	}
+	return return_val;
+}
+
 
 /**
  * Initialize the driver.
@@ -182,17 +211,13 @@ serialPOS_init(Driver* drvthis)
 	/* READ CONFIG FILE */
 
 	/* Get serial device to use */
-	strncpy(device,
-		drvthis->config_get_string(drvthis->name, "Device", 0,
-					   DEFAULT_DEVICE), sizeof(device));
-	device[sizeof(device) - 1] = '\0';
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
+	device[sizeof(device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, device);
 
 	/* Get emulation type */
-	strncpy(buf,
-		drvthis->config_get_string(drvthis->name, "Type", 0,
-					   DEFAULT_TYPE), sizeof(buf));
-	buf[sizeof(buf) - 1] = '\0';
+	strncpy(buf, drvthis->config_get_string(drvthis, "type", DEFAULT_TYPE), sizeof(buf));
+	buf[sizeof(buf)-1] = '\0';
 	if (strncasecmp(buf, "AED", 3) == 0) {
 		p->protocol_ops = &serialPOS_aedex_ops;
 	}
@@ -223,18 +248,14 @@ serialPOS_init(Driver* drvthis)
 	}
 
 	/* Get display size */
-	strncpy(size,
-		drvthis->config_get_string(drvthis->name, "Size", 0,
-					   DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size) - 1] = '\0';
-	if ((sscanf(size, "%dx%d", &w, &h) != 2) || (w <= 0)
-	    || (w > MAX_WIDTH)
-	    || (h <= 0) || (h > MAX_HEIGHT)) {
-		report(RPT_WARNING,
-		       "%s: cannot read Size / "
-		       "Size out-of-range: %s; using default %s",
-		       drvthis->name, size, DEFAULT_SIZE);
-		sscanf(DEFAULT_SIZE, "%dx%d", &w, &h);
+	if ((sscanf(size, "%dx%d", &w, &h) != 2)
+	    || (w <= 0) || (w > LCD_MAX_WIDTH)
+	    || (h <= 0) || (h > LCD_MAX_HEIGHT)) {
+		report(RPT_WARNING, "%s: cannot read Size: %s; using default %s",
+				drvthis->name, size, DEFAULT_SIZE);
+		sscanf(DEFAULT_SIZE , "%dx%d", &w, &h);
 	}
 	p->width = w;
 	p->height = h;
@@ -273,8 +294,7 @@ serialPOS_init(Driver* drvthis)
 
 
 	/* Get speed */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0,
-				      DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	switch (tmp) {
 	    case 1200:
 		speed = B1200;

@@ -62,7 +62,7 @@ hd_init_usblcd(Driver *drvthis)
 	int major, minor;
 
 	/* Get device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "device", 0, DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device) - 1] = '\0';
 	report(RPT_INFO, "HD44780: USBLCD: using device: %s", device);
 

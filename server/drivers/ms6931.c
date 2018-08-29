@@ -176,12 +176,12 @@ ms6931_init (Driver *drvthis)
 	debug(RPT_INFO, "ms6931_init: init(%p)", drvthis);
 
 	/*Which serial device should be used*/
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, MS6931_DEF_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", MS6931_DEF_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO,"%s: using Device %s", drvthis->name, p->device);
 
 	/*Which size*/
-	strncpy(size, drvthis->config_get_string(drvthis->name , "Size", 0, MS6931_DEF_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", MS6931_DEF_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -194,7 +194,7 @@ ms6931_init (Driver *drvthis)
 	p->height = h;
 
 	/* get the character to use for heartbeat */
-	p->heartbeatCharacter = (unsigned char)(drvthis->config_get_int(drvthis->name, "HeartbeatCharacter", 0, (int)'*') & 0xFF);
+	p->heartbeatCharacter = (unsigned char)(drvthis->config_get_long(drvthis, "heartbeatcharacter", (int)'*') & 0xFF);
 	if ((p->heartbeatCharacter == '\0')
 	    || (p->heartbeatCharacter > 127)
 	    || (charTable[p->heartbeatCharacter] == ' ')) {

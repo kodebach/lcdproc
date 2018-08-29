@@ -81,12 +81,12 @@ MODULE_EXPORT int glcdlib_init (Driver *drvthis)
 	// which driver
 	char strCfgDriver[30];
 	strncpy(strCfgDriver,
-		drvthis->config_get_string(drvthis->name, "Driver", 0, "image"),
+		drvthis->config_get_string(drvthis, "driver", "image"),
 		sizeof(strCfgDriver));
 	strCfgDriver[sizeof(strCfgDriver)-1] = '\0';
 
 	// use or not FreeType2
-	bool bCfgUseFT2 = drvthis->config_get_bool(drvthis->name, "UseFT2", 0, true);
+	bool bCfgUseFT2 = drvthis->config_get_bool(drvthis, "useft2", true);
 
 	// which text resolution
 	const char strTextResDefault[] = "16x4";
@@ -94,7 +94,7 @@ MODULE_EXPORT int glcdlib_init (Driver *drvthis)
 	int nCfgTextWidth = 0;
 	int nCfgTextRows = 0;
 	strncpy(strTextRes,
-		drvthis->config_get_string(drvthis->name, "TextResolution", 0, strTextResDefault),
+		drvthis->config_get_string(drvthis, "textresolution", strTextResDefault),
 		sizeof(strTextRes));
 	strTextRes[sizeof(strTextRes)-1] = '\0';
 	if ((sscanf(strTextRes, "%dx%d", &nCfgTextWidth, &nCfgTextRows) != 2)
@@ -111,7 +111,7 @@ MODULE_EXPORT int glcdlib_init (Driver *drvthis)
 	const char strCfgFontFileDef[] = "/usr/share/fonts/corefonts/courbd.ttf";
 	char strCfgFontFile[256];
 	strncpy(strCfgFontFile,
-		drvthis->config_get_string(drvthis->name, "FontFile", 0, strCfgFontFileDef),
+		drvthis->config_get_string(drvthis, "fontfile", strCfgFontFileDef),
 		sizeof(strCfgFontFile));
 	strCfgFontFile[sizeof(strCfgFontFile)-1] = '\0';
 
@@ -121,7 +121,7 @@ MODULE_EXPORT int glcdlib_init (Driver *drvthis)
 	// character encoding
 	char strCfgEncoding[25];
 	strncpy(strCfgEncoding,
-		drvthis->config_get_string(drvthis->name, "CharEncoding", 0, "ISO8859-1"),
+		drvthis->config_get_string(drvthis, "charencoding", "ISO8859-1"),
 		sizeof(strCfgEncoding));
 	strCfgEncoding[sizeof(strCfgEncoding)-1] = '\0';
 
@@ -131,7 +131,7 @@ MODULE_EXPORT int glcdlib_init (Driver *drvthis)
 	int nCfgMinFontFaceWidth = 0;
 	int nCfgMinFontFaceHeight = 0;
 	strncpy(strMinFontFaceSize,
-		drvthis->config_get_string(drvthis->name, "MinFontFaceSize", 0, strMinFaceSizeDef),
+		drvthis->config_get_string(drvthis, "minfontfacesize", strMinFaceSizeDef),
 		sizeof(strMinFontFaceSize));
 	strMinFontFaceSize[sizeof(strMinFontFaceSize)-1] = '\0';
 	if ((sscanf(strMinFontFaceSize, "%dx%d", &nCfgMinFontFaceWidth, &nCfgMinFontFaceHeight) != 2)
@@ -145,23 +145,23 @@ MODULE_EXPORT int glcdlib_init (Driver *drvthis)
 	}
 
 	// show debugging frame?
-	bool bShowDbgFrame = drvthis->config_get_bool(drvthis->name, "ShowDebugFrame", 0, true);
+	bool bShowDbgFrame = drvthis->config_get_bool(drvthis, "showdebugframe", true);
 	// show big border?
-	bool bShowBigBorder = drvthis->config_get_bool(drvthis->name, "ShowBigBorder", 0, true);
+	bool bShowBigBorder = drvthis->config_get_bool(drvthis, "showbigborder", true);
 	// show thin border?
-	bool bShowThinBorder = drvthis->config_get_bool(drvthis->name, "ShowThinBorder", 0, true);
+	bool bShowThinBorder = drvthis->config_get_bool(drvthis, "showthinborder", true);
 
 	// pixel shift
-	int nPixShiftX = drvthis->config_get_int(drvthis->name, "PixelShiftX", 0, 0);
-	int nPixShiftY = drvthis->config_get_int(drvthis->name, "PixelShiftY", 0, 0);
+	int nPixShiftX = drvthis->config_get_long(drvthis, "pixelshiftx", 0);
+	int nPixShiftY = drvthis->config_get_long(drvthis, "pixelshifty", 0);
 
 	//##################################################################
 	// these are optional and override graphlcd-base library's own settings
 	// before on startup only:
 
-	int nContrast = drvthis->config_get_int(drvthis->name, "Contrast", 0, 50);
-	bool bBacklight = drvthis->config_get_bool(drvthis->name, "Backlight", 0, false);
-	bool bUpsideDown = drvthis->config_get_bool(drvthis->name, "UpsideDown", 0, false);
+	int nContrast = drvthis->config_get_long(drvthis, "contrast", 50);
+	bool bBacklight = drvthis->config_get_bool(drvthis, "backlight", false);
+	bool bUpsideDown = drvthis->config_get_bool(drvthis, "upsidedown", false);
 
 	// instantiate driver in the wrapper library
 	pPD->glcdDriver = glcddriverCreate();
@@ -187,9 +187,9 @@ MODULE_EXPORT int glcdlib_init (Driver *drvthis)
 			nContrast);
 
 	// apply supplemental settings
-	int nBrightness = drvthis->config_get_int(drvthis->name, "Brightness", 0, 50);
+	int nBrightness = drvthis->config_get_long(drvthis, "brightness", 50);
 	glcddriverSetBrightness(pPD->glcdDriver, nBrightness);
-	bool bInvert = drvthis->config_get_bool(drvthis->name, "Invert", 0, false);
+	bool bInvert = drvthis->config_get_bool(drvthis, "invert", false);
 	glcddriverInvert(pPD->glcdDriver, bInvert);
 
 	report(RPT_DEBUG, "%s: init() done", drvthis->name);

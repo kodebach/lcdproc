@@ -64,7 +64,7 @@
 #include "serverscreens.h"
 #include "menuscreens.h"
 #include "input.h"
-#include "shared/configfile.h"
+#include "shared/elektraconfig.h"
 #include "drivers.h"
 #include "main.h"
 
@@ -90,6 +90,8 @@
 #define DEFAULT_HEARTBEAT		HEARTBEAT_OPEN
 #define DEFAULT_TITLESPEED		TITLESPEED_MAX
 #define DEFAULT_AUTOROTATE		AUTOROTATE_ON
+
+#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 /* Socket to bind to...
 
@@ -145,7 +147,7 @@ long timer = 0;
 /**** Local functions ****/
 static void clear_settings(void);
 static int process_command_line(int argc, char **argv);
-static int process_configfile(char *cfgfile);
+static int process_kdb(char *cfgfile);
 static void set_default_settings(void);
 static void install_signal_handlers(int allow_reload);
 static void child_ok_func(int signal);
@@ -208,7 +210,7 @@ main(int argc, char **argv)
 	 * If config file was not given on command line use default */
 	if (strcmp(configfile, UNSET_STR) == 0)
 		strncpy(configfile, DEFAULT_CONFIGFILE, sizeof(configfile));
-	CHAIN(e, process_configfile(configfile));
+	CHAIN(e, process_kdb(configfile));
 
 	/* Set default values*/
 	set_default_settings();
@@ -394,28 +396,46 @@ process_command_line(int argc, char **argv)
 
 /* reads and parses configuration file */
 static int
-process_configfile(char *configfile)
+process_kdb(char *configfile)
 {
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
 	/* Read server settings*/
 
+/*
 	if (config_read_file(configfile) != 0) {
 		report(RPT_CRIT, "Could not read config file: %s", configfile);
 		return -1;
 	}
+	*/
+
+	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	if (config == NULL) {
+		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
+		return -1;
+	}
 
 	if (bind_port == UNSET_INT)
-		bind_port = config_get_int("Server", "Port", 0, UNSET_INT);
+		bind_port = econfig_get_long(config, CONFIG_BASE_KEY"/general/port", UNSET_INT);
 
-	if (strcmp(bind_addr, UNSET_STR) == 0)
-		strncpy(bind_addr, config_get_string("Server", "Bind", 0, UNSET_STR), sizeof(bind_addr));
+	if (strcmp(bind_addr, UNSET_STR) == 0) {
+		char* bind = econfig_get_string(config, CONFIG_BASE_KEY"/general/bind", UNSET_STR);
+		strncpy(bind_addr, bind, sizeof(bind_addr));
+		if(strcmp(bind, UNSET_STR) != 0) {
+			free(bind);
+		}
+	}
 
-	if (strcmp(user, UNSET_STR) == 0)
-		strncpy(user, config_get_string("Server", "User", 0, UNSET_STR), sizeof(user));
+	if (strcmp(user, UNSET_STR) == 0) {
+		char* usr = econfig_get_string(config, CONFIG_BASE_KEY"/general/user", UNSET_STR);
+		strncpy(user, usr, sizeof(user));
+		if(strcmp(usr, UNSET_STR) != 0) {
+			free(usr);
+		}
+	}
 
 	if (default_duration == UNSET_INT) {
-		default_duration = (config_get_float("Server", "WaitTime", 0, 0) * 1e6 / frame_interval);
+		default_duration = econfig_get_double(config, CONFIG_BASE_KEY"/general/waittime", 0.0) * 1e6 / frame_interval;
 		if (default_duration == 0)
 			default_duration = UNSET_INT;
 		else if (default_duration * frame_interval < 2e6) {
@@ -425,30 +445,30 @@ process_configfile(char *configfile)
 	}
 
 	if (foreground_mode == UNSET_INT) {
-		int fg = config_get_bool("Server", "Foreground", 0, UNSET_INT);
-
-		if (fg != UNSET_INT)
-			foreground_mode = fg;
+		foreground_mode = econfig_get_bool(config, CONFIG_BASE_KEY"/general/foreground", foreground_mode);
 	}
 
 	if (rotate_server_screen == UNSET_INT) {
-		rotate_server_screen = config_get_tristate("Server", "ServerScreen", 0, "blank", UNSET_INT);
+		const char *values[3] = {"off", "on", "blank"};
+		rotate_server_screen = econfig_get_enum(config, CONFIG_BASE_KEY "/general/serverscreen", 1, 3, values);
 	}
 
 	if (backlight == UNSET_INT) {
-		backlight = config_get_tristate("Server", "Backlight", 0, "open", UNSET_INT);
+		const char *values[3] = {"off", "on", "open"};
+		backlight = econfig_get_enum(config, CONFIG_BASE_KEY"/general/backlight", 2, 3, values);
 	}
 
 	if (heartbeat == UNSET_INT) {
-		heartbeat = config_get_tristate("Server", "Heartbeat", 0, "open", UNSET_INT);
+		const char *values[3] = {"off", "on", "open"};
+		heartbeat = econfig_get_enum(config, CONFIG_BASE_KEY"/general/heartbeat", 2, 3, values);
 	}
 
 	if (autorotate == UNSET_INT) {
-		autorotate = config_get_bool("Server", "AutoRotate", 0, DEFAULT_AUTOROTATE);
+		autorotate = econfig_get_bool(config, CONFIG_BASE_KEY"/general/autorotate", DEFAULT_AUTOROTATE);
 	}
 
 	if (titlespeed == UNSET_INT) {
-		int speed = config_get_int("Server", "TitleSpeed", 0, DEFAULT_TITLESPEED);
+		int speed = econfig_get_long(config, CONFIG_BASE_KEY"/general/titlespeed", DEFAULT_TITLESPEED);
 
 		/* set titlespeed */
 		titlespeed = (speed <= TITLESPEED_NO)
@@ -456,19 +476,18 @@ process_configfile(char *configfile)
 			     : min(speed, TITLESPEED_MAX);
 	}
 
-	frame_interval = config_get_int("Server", "FrameInterval", 0, DEFAULT_FRAME_INTERVAL);
+	frame_interval = econfig_get_long(config, CONFIG_BASE_KEY"/general/frameinterval", DEFAULT_FRAME_INTERVAL);
 
 	if (report_dest == UNSET_INT) {
-		int rs = config_get_bool("Server", "ReportToSyslog", 0, UNSET_INT);
-
-		if (rs != UNSET_INT)
-			report_dest = (rs) ? RPT_DEST_SYSLOG : RPT_DEST_STDERR;
+		bool rs = econfig_get_bool(config, CONFIG_BASE_KEY"/general/reporttosyslog", report_dest == RPT_DEST_SYSLOG);
+		report_dest = rs ? RPT_DEST_SYSLOG : RPT_DEST_STDERR;
 	}
 	if (report_level == UNSET_INT) {
-		report_level = config_get_int("Server", "ReportLevel", 0, UNSET_INT);
+		report_level = econfig_get_long(config, CONFIG_BASE_KEY"/general/reportlevel", UNSET_INT);
 	}
 
 
+	// TODO (kodebach): docu
 	/* Read drivers */
 
 	 /* If drivers have been specified on the command line, then do not
@@ -476,20 +495,37 @@ process_configfile(char *configfile)
 	 */
 	if (num_drivers == 0) {
 		/* loop over all the Driver= directives to read the driver names */
-		while (1) {
-			const char *s = config_get_string("Server", "Driver", num_drivers, NULL);
-			if (s == NULL)
-				break;
-			if (s[0] != '\0') {
-				drivernames[num_drivers] = strdup(s);
-				if (drivernames[num_drivers] == NULL) {
-					report(RPT_ERR, "alloc error storing driver name: %s", s);
+		num_drivers = econfig_array_size(config, CONFIG_BASE_KEY"/general/driver");
+
+		if (num_drivers > 0) {
+			Key* driverKey = ksLookupByName(config, CONFIG_BASE_KEY"/general/driver", 0);
+
+			keyAddBaseName(driverKey, "#0");
+			drivernames[0] = econfig_get_string(config, keyName(driverKey), NULL);
+			
+			if (drivernames[0] == NULL) {
+				report(RPT_ERR, "error reading driver name from key: %s", driverKey);
+				exit(EXIT_FAILURE);
+			}
+
+			char nameBuf[32];
+			for(size_t i = 1; i < num_drivers; i++)
+			{
+				snprintf(nameBuf, 31, "#%li", i);
+				keySetBaseName(driverKey, nameBuf);
+				drivernames[i] = econfig_get_string(config, keyName(driverKey), NULL);
+
+				if (drivernames[i] == NULL) {
+					report(RPT_ERR, "error reading driver name from key: %s", driverKey);
 					exit(EXIT_FAILURE);
 				}
-				num_drivers++;
 			}
+
+			keyDel(driverKey);		
 		}
 	}
+
+	econfig_close(config);
 
 	return 0;
 }
@@ -731,7 +767,6 @@ do_reload(void)
 
 	drivers_unload_all();		/* Close all drivers */
 
-	config_clear();
 	clear_settings();
 
 	/* Reread command line*/
@@ -740,7 +775,7 @@ do_reload(void)
 	/* Reread config file */
 	if (strcmp(configfile, UNSET_STR)==0)
 		strncpy(configfile, DEFAULT_CONFIGFILE, sizeof(configfile));
-	CHAIN(e, process_configfile(configfile));
+	CHAIN(e, process_kdb(configfile));
 
 	/* Set default values */
 	CHAIN(e, (set_default_settings(), 0));
@@ -896,6 +931,8 @@ catch_reload_signal(int val)
 static int
 interpret_boolean_arg(char *s)
 {
+	// TODO (kodebach): maybe redirect to econfig
+
 	/* keep these checks consistent with config_get_boolean() */
 	if (strcasecmp(s, "0") == 0 || strcasecmp(s, "false") == 0
 	|| strcasecmp(s, "n") == 0 || strcasecmp(s, "no") == 0

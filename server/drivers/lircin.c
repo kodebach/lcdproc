@@ -97,8 +97,8 @@ lircin_init (Driver *drvthis)
 	/* READ CONFIG FILE:*/
 
 	/* Get location of lircrc to be used */
-	if (drvthis->config_get_string(drvthis->name, "lircrc", 0 , NULL) != NULL) {
-		strncpy(s, drvthis->config_get_string(drvthis->name, "lircrc", 0, ""), sizeof(s));
+	if (drvthis->config_get_string(drvthis, "lircrc", NULL) != NULL) {
+		strncpy(s, drvthis->config_get_string(drvthis, "lircrc", ""), sizeof(s));
 		s[sizeof(s)-1] = '\0';
 	}
 
@@ -116,7 +116,7 @@ lircin_init (Driver *drvthis)
 	}
 
 	/* Get program identifier "prog=..." to be used */
-	strncpy(s, drvthis->config_get_string(drvthis->name, "Prog", 0, LIRCIN_DEF_PROG), sizeof(s));
+	strncpy(s, drvthis->config_get_string(drvthis, "prog", LIRCIN_DEF_PROG), sizeof(s));
 
 	p->prog = malloc(strlen(s) + 1);
 	if (p->prog == NULL) {

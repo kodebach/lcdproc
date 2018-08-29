@@ -379,7 +379,7 @@ lis_init(Driver *drvthis)
 		p->line_flags[count] = 1;	/* dirty! */
 
 	/* Which display brightness */
-	count = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	count = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	if ((count < 0) || (count > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
 			drvthis->name, DEFAULT_BRIGHTNESS);
@@ -387,10 +387,10 @@ lis_init(Driver *drvthis)
 	}
 	p->brightness = count;
 
-	p->VendorID = drvthis->config_get_int(drvthis->name, "VendorID", 0, DISPLAY_VENDOR_ID);
-	p->ProductID = drvthis->config_get_int(drvthis->name, "ProductID", 0, DISPLAY_PRODUCT_ID);
+	p->VendorID = drvthis->config_get_long(drvthis, "vendorid", DISPLAY_VENDOR_ID);
+	p->ProductID = drvthis->config_get_long(drvthis, "productid", DISPLAY_PRODUCT_ID);
 
-	p->lastline = drvthis->config_get_bool(drvthis->name, "lastline", 0, 1);
+	p->lastline = drvthis->config_get_bool(drvthis, "lastline", 1);
 	/* End of config file parsing */
 
 

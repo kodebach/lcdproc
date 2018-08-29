@@ -282,7 +282,7 @@ imonlcd_init(Driver *drvthis)
 	/* Get settings from config file */
 
 	/* Get device */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(buf));
 	buf[sizeof(buf) - 1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, buf);
 
@@ -293,7 +293,7 @@ imonlcd_init(Driver *drvthis)
 		return -1;
 	}
 	/* Get protocol version */
-	tmp = drvthis->config_get_int(drvthis->name, "Protocol", 0, DEFAULT_PROTOCOL);
+	tmp = drvthis->config_get_long(drvthis, "protocol", DEFAULT_PROTOCOL);
 	if ((tmp < 0) || (tmp > 1)) {
 		report(RPT_WARNING, "%s: Protocol must be between 0 and 1; using default %d",
 		       drvthis->name, DEFAULT_PROTOCOL);
@@ -322,7 +322,7 @@ imonlcd_init(Driver *drvthis)
 	}
 
 	/* Get size settings */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(buf));
 	buf[sizeof(buf) - 1] = '\0';
 	if ((sscanf(buf, "%dx%d", &graph_width, &graph_height) != 2)
 	    || (graph_width <= 0) || (graph_height <= 0)
@@ -344,7 +344,7 @@ imonlcd_init(Driver *drvthis)
 	 * Get the "on exit" setting so we know what to do when we shut the
 	 * device down
 	 */
-	tmp = drvthis->config_get_int(drvthis->name, "OnExit", 0, DEFAULT_ON_EXIT);
+	tmp = drvthis->config_get_long(drvthis, "onexit", DEFAULT_ON_EXIT);
 	if ((tmp < 0) || (tmp > 3)) {
 		report(RPT_WARNING, "%s: OnExit must be between 0 and 3; using default %d",
 		       drvthis->name, DEFAULT_ON_EXIT);
@@ -353,7 +353,7 @@ imonlcd_init(Driver *drvthis)
 	p->on_exit = tmp;
 
 	/* Get the "contrast" setting */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", DEFAULT_CONTRAST);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Contrast must be between 0 and 1000; using default %d",
 		       drvthis->name, DEFAULT_CONTRAST);
@@ -362,10 +362,10 @@ imonlcd_init(Driver *drvthis)
 	p->contrast = tmp;
 
 	/* Get the "backlight" setting */
-	p->backlightOn = drvthis->config_get_bool(drvthis->name, "Backlight", 0, DEFAULT_BACKLIGHT);
+	p->backlightOn = drvthis->config_get_bool(drvthis, "backlight", DEFAULT_BACKLIGHT);
 
 	/* Get the "disc-mode" setting */
-	p->discMode = drvthis->config_get_bool(drvthis->name, "DiscMode", 0, DEFAULT_DISCMODE);
+	p->discMode = drvthis->config_get_bool(drvthis, "discmode", DEFAULT_DISCMODE);
 
 	/*
 	 * We need a little bit of extra memory in the frame buffer so that

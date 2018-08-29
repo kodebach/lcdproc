@@ -80,7 +80,7 @@ glcd_serdisp_init(Driver *drvthis)
 	p->ct_data = ct_data;
 
 	/* get the display name */
-	s = drvthis->config_get_string(drvthis->name, "serdisp_name", 0, NULL);
+	s = drvthis->config_get_string(drvthis, "serdisp_name", NULL);
 	if (s == NULL) {
 		report(RPT_ERR, "%s: \'serdisp_name\' missing in configuration",
 		       drvthis->name);
@@ -90,7 +90,7 @@ glcd_serdisp_init(Driver *drvthis)
 	ct_data->display_name[SERDISPLIB_MAX_DISPLAYNAME - 1] = '\0';
 
 	/* get the display device */
-	s = drvthis->config_get_string(drvthis->name, "serdisp_device", 0, NULL);
+	s = drvthis->config_get_string(drvthis, "serdisp_device", NULL);
 	if (s == NULL) {
 		report(RPT_ERR, "%s: \'serdisp_device\' missing in configuration",
 		       drvthis->name);
@@ -108,7 +108,7 @@ glcd_serdisp_init(Driver *drvthis)
 	}
 
 	/* open and initialize the display with options */
-	s = drvthis->config_get_string(drvthis->name, "serdisp_options", 0, "");
+	s = drvthis->config_get_string(drvthis, "serdisp_options", "");
 	debug(RPT_INFO, "%s: Using serdisp options: %s", drvthis->name, s);
 	ct_data->disp = serdisp_init(ct_data->serdisplib_conn, ct_data->display_name, s);
 	if (ct_data->disp == NULL) {

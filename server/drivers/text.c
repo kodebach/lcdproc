@@ -79,7 +79,7 @@ text_init (Driver *drvthis)
 	}
 	else {
 		/* Use our own size from config file */
-		strncpy(buf, drvthis->config_get_string(drvthis->name, "Size", 0, TEXTDRV_DEFAULT_SIZE), sizeof(buf));
+		strncpy(buf, drvthis->config_get_string(drvthis, "size", TEXTDRV_DEFAULT_SIZE), sizeof(buf));
 		buf[sizeof(buf)-1] = '\0';
 		if ((sscanf(buf , "%dx%d", &p->width, &p->height) != 2)
 		    || (p->width <= 0) || (p->width > LCD_MAX_WIDTH)

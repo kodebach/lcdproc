@@ -89,13 +89,15 @@ lcdm001_parse_keypad_setting(Driver *drvthis, char * keyname, char * default_val
 {
 	char return_val = 0;
 
-	if (strcmp(drvthis->config_get_string(drvthis->name, keyname, 0, default_value), "LeftKey") == 0) {
+	const char* key = drvthis->config_get_string(drvthis, keyname, default_value);
+
+	if (strcmp(key, "LeftKey") == 0) {
 		return_val = LEFT_KEY;
-	} else if (strcmp(drvthis->config_get_string(drvthis->name, keyname, 0, default_value), "RightKey") == 0) {
+	} else if (strcmp(key, "RightKey") == 0) {
 		return_val = RIGHT_KEY;
-	} else if (strcmp(drvthis->config_get_string(drvthis->name, keyname, 0, default_value), "UpKey") == 0) {
+	} else if (strcmp(key, "UpKey") == 0) {
 		return_val = UP_KEY;
-	} else if (strcmp(drvthis->config_get_string(drvthis->name, keyname, 0, default_value), "DownKey") == 0) {
+	} else if (strcmp(key, "DownKey") == 0) {
 		return_val = DOWN_KEY;
 	} else {
 		report(RPT_WARNING, "%s: invalid config setting for %s; using default %s",
@@ -173,7 +175,7 @@ lcdm001_init (Driver *drvthis)
 	/* READ CONFIG FILE: */
 
 	/* which serial device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, "/dev/lcd"), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", "/dev/lcd"), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 

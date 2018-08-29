@@ -3,7 +3,7 @@
  */
 
 /*
-    Copyright (C) 2006 Stefan Herdler in collaboration with Martin Møller.
+    Copyright (C) 2006 Stefan Herdler in collaboration with Martin Mï¿½ller.
 
     This source Code is based on the NoritakeVFD, the serialVFD and the
     CFontzPacket Driver of this package.
@@ -28,7 +28,7 @@
     ==============================================================================
 
     Known hardware-commands of the MD8800 display
-    discovered by Martin Møller (listed in octal notation):
+    discovered by Martin Mï¿½ller (listed in octal notation):
 
     \33\0abcdef (abcdef can be anything, it seems) - set clock, I think.
 	   	The mapping is: bb:aa dd.cc.eeff
@@ -250,12 +250,12 @@ MD8800_init (Driver *drvthis)
 
 	/* Read config file */
 	/* Which device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
 	/* Which size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -268,7 +268,7 @@ MD8800_init (Driver *drvthis)
 	p->height = h;
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_ON_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_ON_BRIGHTNESS);
 	debug(RPT_INFO, "%s: Brightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
@@ -278,7 +278,7 @@ MD8800_init (Driver *drvthis)
 	p->on_brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFF_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFF_BRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
@@ -289,7 +289,7 @@ MD8800_init (Driver *drvthis)
 
 
 	/* Which speed */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	if ((tmp != 1200) && (tmp != 2400) && (tmp != 9600) && (tmp != 19200) && (tmp != 115200)) {
 		report(RPT_WARNING, "%s: Speed must be 1200, 2400, 9600, 19200 or 115200; using default %d",
 			drvthis->name, DEFAULT_SPEED);

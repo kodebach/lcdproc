@@ -77,14 +77,14 @@ glcd_render_init(Driver *drvthis)
 	p->render_config = rconf;
 
 	/* use_ft2 is available in PrivateDate for easy use! */
-	p->use_ft2 = drvthis->config_get_bool(drvthis->name, "useFT2", 0, 1);
+	p->use_ft2 = drvthis->config_get_bool(drvthis, "useft2", 1);
 
 	/* Only configure FreeType if enabled */
 	if (p->use_ft2) {
 		debug(RPT_INFO, "%s: render_init: Using FreeType", drvthis->name);
 
 		/* get font from config file */
-		tmp = drvthis->config_get_string(drvthis->name, "normal_font", 0, NULL);
+		tmp = drvthis->config_get_string(drvthis, "normal_font", NULL);
 		if (tmp == NULL) {
 			report(RPT_ERR, "%s: normal_font missing in configuration", drvthis->name);
 			goto err_out;
@@ -107,10 +107,10 @@ glcd_render_init(Driver *drvthis)
 		}
 
 		/* If the font does not have icons use default 5x8 font */
-		rconf->ft_has_icons = drvthis->config_get_bool(drvthis->name, "fontHasIcons", 0, 1);
+		rconf->ft_has_icons = drvthis->config_get_bool(drvthis, "fonthasicons", 1);
 
 		/* Read display size in pixels */
-		tmp = drvthis->config_get_string(drvthis->name, "CellSize", 0, "6x8");
+		tmp = drvthis->config_get_string(drvthis, "cellsize", "6x8");
 		if ((sscanf(tmp, "%dx%d", &w, &h) != 2)
 		    || (w <= 4) || (w > 24)
 		    || (h <= 6) || (h > 32)) {

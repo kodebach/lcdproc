@@ -128,12 +128,12 @@ CFontz_init(Driver *drvthis)
 
 	/* Read config file */
 	/* Which device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
 	/* Which size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -146,7 +146,7 @@ CFontz_init(Driver *drvthis)
 	p->height = h;
 
 	/* Which contrast */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", DEFAULT_CONTRAST);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Contrast must be between 0 and 1000; using default %d",
 				drvthis->name, DEFAULT_CONTRAST);
@@ -155,7 +155,7 @@ CFontz_init(Driver *drvthis)
 	p->contrast = tmp;
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
 				drvthis->name, DEFAULT_BRIGHTNESS);
@@ -164,7 +164,7 @@ CFontz_init(Driver *drvthis)
 	p->brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
 				drvthis->name, DEFAULT_OFFBRIGHTNESS);
@@ -173,7 +173,7 @@ CFontz_init(Driver *drvthis)
 	p->offbrightness = tmp;
 
 	/* Which speed */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	if (tmp == 1200) speed = B1200;
 	else if (tmp == 2400) speed = B2400;
 	else if (tmp == 9600) speed = B9600;
@@ -186,13 +186,13 @@ CFontz_init(Driver *drvthis)
 	}
 
 	/* New firmware version? */
-	p->newfirmware = drvthis->config_get_bool(drvthis->name, "NewFirmware", 0, 0);
+	p->newfirmware = drvthis->config_get_bool(drvthis, "newfirmware", 0);
 
 	/* Reboot display? */
-	reboot = drvthis->config_get_bool(drvthis->name, "Reboot", 0, 0);
+	reboot = drvthis->config_get_bool(drvthis, "reboot", 0);
 
 	/* Am I USB or not? */
-	usb = drvthis->config_get_bool(drvthis->name, "USB", 0, 0);
+	usb = drvthis->config_get_bool(drvthis, "usb", 0);
 
 	/* Set up io port correctly, and open it... */
 	debug(RPT_DEBUG, "CFontz: Opening device: %s", p->device);

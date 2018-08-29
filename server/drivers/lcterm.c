@@ -95,7 +95,7 @@ lcterm_init (Driver *drvthis)
 
   // READ CONFIG FILE:
   // which serial device should be used
-  strncpy(device, drvthis->config_get_string(drvthis->name , "Device" , 0 , DEFAULT_DEVICE),
+  strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE),
 	  sizeof(device));
   device[sizeof(device)-1] = '\0';
   report(RPT_INFO, "%s: using Device %s", drvthis->name, device);
@@ -103,7 +103,7 @@ lcterm_init (Driver *drvthis)
   /* Get and parse size */
   {
     int w, h;
-    const char *s = drvthis->config_get_string(drvthis->name, "Size", 0, "16x2");
+    const char *s = drvthis->config_get_string(drvthis, "size", "16x2");
 
     debug(RPT_DEBUG, "%s: reading size: %s", __FUNCTION__, s);
 

@@ -146,7 +146,7 @@ SureElec_init(Driver * drvthis)
 	/* READ CONFIG FILE */
 
 	/* Get serial device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device) - 1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, device);
 
@@ -155,7 +155,7 @@ SureElec_init(Driver * drvthis)
 	}
 
 	/* Get edition version */
-	sedition = drvthis->config_get_string(drvthis->name, "Edition", 0, "");
+	sedition = drvthis->config_get_string(drvthis, "edition", "");
 
 	if (strlen(sedition) != 0) {
 		int n = sedition[0] - '0';
@@ -168,7 +168,7 @@ SureElec_init(Driver * drvthis)
 	}
 
 	/* Get the user-specified display size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, ""), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", ""), sizeof(size));
 	size[sizeof(size) - 1] = '\0';
 	if (strlen(size) != 0) {
 		if ((sscanf(size, "%dx%d", &user_width, &user_height) != 2)
@@ -207,7 +207,7 @@ SureElec_init(Driver * drvthis)
 	report(RPT_INFO, "%s: screen size %d x %d.", drvthis->name, p->width, p->height);
 
 	/* Get contrast */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", DEFAULT_CONTRAST);
 	debug(RPT_INFO, "%s: Contrast (in config) is '%d'", drvthis->name, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Contrast value must be between 0 and 1000; using default %d",
@@ -217,7 +217,7 @@ SureElec_init(Driver * drvthis)
 	SureElec_set_contrast(drvthis, tmp);
 
 	/* Get backlight */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	debug(RPT_INFO, "%s: Brightness (in config) is '%d'", drvthis->name, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
@@ -227,7 +227,7 @@ SureElec_init(Driver * drvthis)
 	p->brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",

@@ -65,7 +65,7 @@ hd_init_ethlcd(Driver *drvthis)
 	hd44780_functions->close = ethlcd_HD44780_close;
 
 	/* reading configuration file */
-	strncpy(hostname, drvthis->config_get_string(drvthis->name, "Device", 0, "ethlcd"), sizeof(hostname));
+	strncpy(hostname, drvthis->config_get_string(drvthis, "device", "ethlcd"), sizeof(hostname));
 	hostname[sizeof(hostname) - 1] = '\0';
 
 	p->sock = sock_connect(hostname, DEFAULT_ETHLCD_PORT);

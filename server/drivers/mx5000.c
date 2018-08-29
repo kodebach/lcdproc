@@ -73,11 +73,11 @@ mx5000_init (Driver *drvthis, char *args)
 
     /* Read config file */
     /* Which hiddev device should be used */
-    strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(p->device));
+    strncpy(p->device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(p->device));
     p->device[sizeof(p->device)-1] = '\0';
     debug(RPT_INFO,"%s: using Device %s", drvthis->name, p->device);
 
-    p->wait = drvthis->config_get_int(drvthis->name, "WaitAfterRefresh", 0, DEFAULT_WAIT);
+    p->wait = drvthis->config_get_long(drvthis, "waitafterrefresh", DEFAULT_WAIT);
 
     p->fd = mx5000_open_path(p->device);
     if (p->fd == -1)

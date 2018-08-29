@@ -146,14 +146,13 @@ MTC_S16209X_init (Driver *drvthis)
   /* Read config file */
 
   /* What device should be used */
-  strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0,
-					     MTC_DEFAULT_DEVICE), sizeof(p->device));
+  strncpy(p->device, drvthis->config_get_string(drvthis, "device", MTC_DEFAULT_DEVICE), sizeof(p->device));
   p->device[sizeof(p->device)-1] = '\0';
   report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
 #ifdef CAN_CONTROL_BACKLIGHT
   /* Which backlight brightness */
-  backlight_brightness = drvthis->config_get_int(drvthis->name , "Brightness" , 0 , MTC_DEFAULT_BRIGHTNESS);
+  backlight_brightness = drvthis->config_get_long(drvthis, "brightness", MTC_DEFAULT_BRIGHTNESS);
   if ((backlight_brightness < 0) || (backlight_brightness > 255)) {
     report(RPT_WARNING, "%s: Brightness must be between 0 and 255; using default %d"
 		    drvthis->name, MTC_DEFAULT_BRIGHTNESS);
@@ -163,7 +162,7 @@ MTC_S16209X_init (Driver *drvthis)
 
 #ifdef CAN_REBOOT_LCD
   /* Reboot display? */
-  reboot = drvthis->config_get_bool(drvthis->name , "Reboot", 0, 0);
+  reboot = drvthis->config_get_bool(drvthis, "reboot", 0);
 #endif // CAN_REBOOT_LCD
 
   /* End of config file parsing */

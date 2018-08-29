@@ -73,7 +73,7 @@ olimex1x9_init (Driver *drvthis)
 	if (drvthis->store_private_ptr(drvthis, p))
 		return -1;
 
-	configvalue = drvthis->config_get_string(drvthis->name, "Device", 0, I2C_DEFAULT_DEVICE);
+	configvalue = drvthis->config_get_string(drvthis, "device", I2C_DEFAULT_DEVICE);
 	p->dev = i2c_open(configvalue, BUS_ADDRESS);
 	if (!p->dev) {
 		report(RPT_ERR, "open i2c device '%s' failed: %s", configvalue, strerror(errno));

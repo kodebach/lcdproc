@@ -148,7 +148,7 @@ mdm166a_init(Driver *drvthis)
 	strcpy(p->info, "Targa USB Graphic Vacuum Fluorescent Display (mdm166a) driver v0.1 : 19c2:6a11");
 
 	/* Get clock setting from config */
-	strncpy(clock, drvthis->config_get_string(drvthis->name, "Clock", 0, DEFAULT_CLOCK), sizeof(clock));
+	strncpy(clock, drvthis->config_get_string(drvthis, "clock", DEFAULT_CLOCK), sizeof(clock));
 	clock[sizeof(clock) - 1] = '\0';
 	p->showClock = 0;
 	if (strcmp(clock, "small") == 0)
@@ -157,8 +157,8 @@ mdm166a_init(Driver *drvthis)
 		p->showClock = 2;
 
 	/* Get dimming setting from config */
-	p->dimm = drvthis->config_get_bool(drvthis->name, "Dimming", 0, 0);
-	p->offDimm = drvthis->config_get_bool(drvthis->name, "OffDimming", 0, 0);
+	p->dimm = drvthis->config_get_bool(drvthis, "dimming", 0);
+	p->offDimm = drvthis->config_get_bool(drvthis, "offdimming", 0);
 
 	/* Silence libhid and libusb */
 	hid_set_debug(HID_DEBUG_NONE);

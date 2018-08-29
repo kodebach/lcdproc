@@ -122,7 +122,7 @@ hd_init_spi(Driver *drvthis)
 	/* READ CONFIG FILE */
 
 	/* Get and open SPI device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE),
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE),
 		sizeof(device));
 	device[sizeof(device) - 1] = '\0';
 	report(RPT_INFO, "HD44780: SPI: Using device '%s'", device);
@@ -137,7 +137,7 @@ hd_init_spi(Driver *drvthis)
 	/* Get and open the backlight device */
 	p->backlight_bit = -1;
 	strncpy(backlight_device,
-		drvthis->config_get_string(drvthis->name, "BacklightDevice", 0, ""),
+		drvthis->config_get_string(drvthis, "backlightdevice", ""),
 		sizeof(backlight_device));
 	backlight_device[sizeof(backlight_device) - 1] = '\0';
 

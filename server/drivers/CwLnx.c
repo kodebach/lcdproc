@@ -449,7 +449,7 @@ CwLnx_init(Driver *drvthis)
     int tmp;
     int w;
     int h;
-    const char *s;
+    char *s;
 
     PrivateData *p;
 
@@ -478,7 +478,7 @@ CwLnx_init(Driver *drvthis)
     /* Read config file */
 
     /* Which model is it (1602, 12232 or 12832)? */
-    tmp = drvthis->config_get_int(drvthis->name, "Model", 0, 12232);
+    tmp = drvthis->config_get_long(drvthis, "model", 12232);
     debug(RPT_INFO, "%s: Model (in config) is '%d'", __FUNCTION__, tmp);
     if ((tmp != 1602) && (tmp != 12232) && (tmp != 12832)) {
 	tmp = 12232;
@@ -506,12 +506,12 @@ CwLnx_init(Driver *drvthis)
     }
 
     /* Which device should be used */
-    strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(device));
+    strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
     device[sizeof(device) - 1] = '\0';
     report(RPT_INFO, "%s: using Device %s", drvthis->name, device);
 
     /* Which size */
-    strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, default_size), sizeof(size));
+    strncpy(size, drvthis->config_get_string(drvthis, "size", default_size), sizeof(size));
     size[sizeof(size) - 1] = '\0';
     if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	|| (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -526,7 +526,7 @@ CwLnx_init(Driver *drvthis)
     /* Contrast of the LCD can be changed by adjusting the trimpot R7  */
 
     /* Which speed */
-    tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, default_speed);
+    tmp = drvthis->config_get_long(drvthis, "speed", default_speed);
 
     switch (tmp) {
 	case 9600:
@@ -542,13 +542,13 @@ CwLnx_init(Driver *drvthis)
     }
 
     /* do we have a keypad? */
-    if (drvthis->config_get_bool(drvthis->name , "Keypad", 0, 0)) {
+    if (drvthis->config_get_bool(drvthis, "keypad", 0)) {
 	report(RPT_INFO, "%s: Config tells us we have a keypad", drvthis->name);
 	p->have_keypad = 1;
     }
 
     /* keypad test mode? */
-    if (drvthis->config_get_bool(drvthis->name , "keypad_test_mode", 0, 0)) {
+    if (drvthis->config_get_bool(drvthis, "keypad_test_mode", 0)) {
 	report(RPT_INFO, "%s: Config tells us to test the keypad mapping", drvthis->name);
 	p->keypad_test_mode = 1;
 	stay_in_foreground = 1;
@@ -556,29 +556,19 @@ CwLnx_init(Driver *drvthis)
 
     /* read the keypad mapping only if we have a keypad. */
     if (p->have_keypad) {
-	int x;
+		for(int x = 0; x < MaxKeyMap; x++) {
+			char buf[10];
+			snprintf(buf, 10, "KeyMap_%c", 'A'+x);
 
-	/* Read keymap */
-	for (x = 0; x < MaxKeyMap; x++) {
-	    char buf[40];
+			s = drvthis->config_get_string(drvthis, buf, NULL);
 
-	    /* First fill with default value */
-
-	    p->KeyMap[x] = defaultKeyMap[x];
-/* The line above make a warning... the code is comming from hd44780.c */
-
-/* printf("%s-%s\n", defaultKeyMap[x], p->KeyMap[x]);     */
-
-	    /* Read config value */
-	    sprintf(buf, "KeyMap_%c", x+'A');
-	    s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
-
-	    /* Was a key specified in the config file ? */
-	    if (s != NULL) {
-		p->KeyMap[x] = strdup(s);
-		report(RPT_INFO, "%s: Key '%c' to \"%s\"", drvthis->name, x+'A', s);
-	    }
-	}
+			if(s != NULL) {
+				p->KeyMap[x] = s;
+				report(RPT_INFO, "%s: Key '%c' to \"%s\"", drvthis->name, 'A'+x, s);
+			} else {
+				p->KeyMap[x] = defaultKeyMap[x];
+			}
+		}
     }
 
     /* End of config file parsing */

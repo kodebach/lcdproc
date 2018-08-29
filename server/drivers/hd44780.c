@@ -171,15 +171,16 @@ static int get_config_backlight_type(Driver *drvthis)
 {
 	int i, opt_idx;
 	int result = BACKLIGHT_NONE;
-	const char *value;
+	char *value;
 	int was_none = 0;
 	PrivateData *p = drvthis->private_data;
 
 	/* allow multiple occurences of option Backlight, with values specified above
 	 * in bl_value_mapping, first one occurrence may be also boolean for backward compability */
 
+	char buf[30];
 	for (opt_idx=0; /* nop */; opt_idx++) {
-		const char *def_value;
+		char *def_value;
 		/* for first occurence of option 'backlight' default value depends
 		 * on model (which should be read before invoking this function) */
 		if (opt_idx != 0)
@@ -188,7 +189,9 @@ static int get_config_backlight_type(Driver *drvthis)
 			def_value = "internal";
 		else
 			def_value = "none";
-		value = drvthis->config_get_string(drvthis->name, "backlight", opt_idx, def_value);
+		
+		snprintf(buf, 30, "backlight/#%d", opt_idx);
+		value = drvthis->config_get_string(drvthis, buf, def_value);
 
 		if (value == NULL)
 			/* this is for second and next occurrences */
@@ -208,18 +211,21 @@ static int get_config_backlight_type(Driver *drvthis)
 			/* name not recognized */
 			if (opt_idx == 0) {
 				/* not found - try boolean for backward compability. If found, ignore other occurences */
-				short tmp = drvthis->config_get_bool(drvthis->name, "backlight", opt_idx, -1);
+				short tmp = drvthis->config_get_bool(drvthis, "backlight", -1);
 				if (tmp < 0) {
 					report(RPT_ERR, "%s: unknown Backlight type: %s", drvthis->name, value);
+					free(value);
 					return -1;
 				}
 				result = tmp ? BACKLIGHT_EXTERNAL_PIN : BACKLIGHT_NONE;
 				report(RPT_WARNING, "%s: deprecated boolean '%s' for 'Backlight' option found, consider updating configuration !!", drvthis->name, value);
+				free(value);
 				return result;
 			}
 			else {
 				/* invalid option value */
 				report(RPT_ERR, "%s: unknown Backlight type: %s", drvthis->name, value);
+				free(value);
 				return -1;
 			}
 		}
@@ -227,8 +233,11 @@ static int get_config_backlight_type(Driver *drvthis)
 
 	if (result != BACKLIGHT_NONE && was_none) {
 		report(RPT_ERR, "%s: conflicting types of 'Backlight' option provided", drvthis->name);
+		free(value);
 		return -2;
 	}
+
+	free(value);
 
 	return result;
 }
@@ -304,7 +313,7 @@ HD44780_init(Driver *drvthis)
 {
 	/* TODO: single point of return */
 	char buf[40];
-	const char *s;
+	char *s;
 	int i = 0;
 	int (*init_fn) (Driver *drvthis) = NULL;
 	int if_type = IF_TYPE_UNKNOWN;
@@ -331,8 +340,8 @@ HD44780_init(Driver *drvthis)
 
 	/* READ THE CONFIG FILE */
 
-	p->port			= drvthis->config_get_int(drvthis->name, "port", 0, LPTPORT);
-	s			= drvthis->config_get_string(drvthis->name, "model", 0, "default");
+	p->port			= drvthis->config_get_long(drvthis, "port", LPTPORT);
+	s			= drvthis->config_get_string(drvthis, "model", "default");
 	p->model		= model_by_name(s);
 	if (p->model < 0) {
 		report(RPT_ERR, "%s: unknown Model: %s", drvthis->name, s);
@@ -340,21 +349,21 @@ HD44780_init(Driver *drvthis)
 	}
 	/* config file compability stuff */
 	if (p->model == HD44780_MODEL_DEFAULT) {
-		ext_mode	= drvthis->config_get_bool(drvthis->name, "extendedmode", 0, 0);
+		ext_mode	= drvthis->config_get_bool(drvthis, "extendedmode", 0);
 		if (ext_mode)
 			p->model = HD44780_MODEL_EXTENDED;
 	}
 	else {
 		tmp = (p->model == HD44780_MODEL_EXTENDED);
-		ext_mode = !!drvthis->config_get_bool(drvthis->name, "extendedmode", 0, tmp);
+		ext_mode = !!drvthis->config_get_bool(drvthis, "extendedmode", tmp);
 		if (ext_mode != tmp) {
 			report(RPT_ERR, "%s: conflicting Model %s and extended mode: %d", drvthis->name, model_name(p->model), ext_mode);
 			return -1;
 		}
 	}
 
-	p->line_address 	= drvthis->config_get_int(drvthis->name, "lineaddress", 0, LADDR);
-	p->have_keypad		= drvthis->config_get_bool(drvthis->name, "keypad", 0, 0);
+	p->line_address 	= drvthis->config_get_long(drvthis, "lineaddress", LADDR);
+	p->have_keypad		= drvthis->config_get_bool(drvthis, "keypad", 0);
 
 	/* parse backlight option. Default is model specific */
 	p->backlight_type	= get_config_backlight_type(drvthis);
@@ -363,25 +372,25 @@ HD44780_init(Driver *drvthis)
 		return -1;
 	}
 
-	p->backlight_cmd_on	= drvthis->config_get_int(drvthis->name, "backlightcmdon", 0, 0);
-	p->backlight_cmd_off	= drvthis->config_get_int(drvthis->name, "backlightcmdoff", 0, 0);
+	p->backlight_cmd_on	= drvthis->config_get_long(drvthis, "backlightcmdon", 0);
+	p->backlight_cmd_off	= drvthis->config_get_long(drvthis, "backlightcmdoff", 0);
 	if ((p->backlight_type & BACKLIGHT_CONFIG_CMDS) && (!p->backlight_cmd_on || !p->backlight_cmd_off)) {
 		report(RPT_ERR, "%s: No commands for enabling or disabling backlight specified for backlight type internalCmds", drvthis->name);
 		return -1;
 	}
 
-	p->have_output		= drvthis->config_get_bool(drvthis->name, "outputport", 0, 0);
-	p->delayMult 		= drvthis->config_get_int(drvthis->name, "delaymult", 0, 1);
-	p->delayBus 		= drvthis->config_get_bool(drvthis->name, "delaybus", 0, 1);
-	p->lastline 		= drvthis->config_get_bool(drvthis->name, "lastline", 0, 1);
+	p->have_output		= drvthis->config_get_bool(drvthis, "outputport", 0);
+	p->delayMult 		= drvthis->config_get_long(drvthis, "delaymult", 1);
+	p->delayBus 		= drvthis->config_get_bool(drvthis, "delaybus", 1);
+	p->lastline 		= drvthis->config_get_bool(drvthis, "lastline", 1);
 
 	p->nextrefresh		= 0;
-	p->refreshdisplay 	= drvthis->config_get_int(drvthis->name, "refreshdisplay", 0, 0);
+	p->refreshdisplay 	= drvthis->config_get_long(drvthis, "refreshdisplay", 0);
 	p->nextkeepalive	= 0;
-	p->keepalivedisplay	= drvthis->config_get_int(drvthis->name, "keepalivedisplay", 0, 0);
+	p->keepalivedisplay	= drvthis->config_get_long(drvthis, "keepalivedisplay", 0);
 
 	/* Get and search for the connection type */
-	s = drvthis->config_get_string(drvthis->name, "ConnectionType", 0, "4bit");
+	s = drvthis->config_get_string(drvthis, "connectiontype", "4bit");
 	for (i = 0; (connectionMapping[i].name != NULL) &&
 		    (strcasecmp(s, connectionMapping[i].name) != 0); i++)
 		;
@@ -404,7 +413,7 @@ HD44780_init(Driver *drvthis)
 	}
 
 	/* Get and parse vspan only when specified */
-	s = drvthis->config_get_string(drvthis->name, "vspan", 0, "");
+	s = drvthis->config_get_string(drvthis, "vspan", "");
 	if (s[0] != '\0') {
 		if (parse_span_list(&(p->spanList), &(p->numLines), &(p->dispVOffset), &(p->numDisplays), &(p->dispSizes), s) == -1) {
 			report(RPT_ERR, "%s: invalid vspan value: %s", drvthis->name, s);
@@ -413,7 +422,7 @@ HD44780_init(Driver *drvthis)
 	}
 
 	/* Get and parse size */
-	s = drvthis->config_get_string(drvthis->name, "size", 0, "20x4");
+	s = drvthis->config_get_string(drvthis, "size", "20x4");
 	if (sscanf(s, "%dx%d", &(p->width), &(p->height)) != 2
 	    || (p->width <= 0) || (p->width > LCD_MAX_WIDTH)
 	    || (p->height <= 0) || (p->height > LCD_MAX_HEIGHT)) {
@@ -421,7 +430,7 @@ HD44780_init(Driver *drvthis)
 	}
 
 	/* set contrast */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", DEFAULT_CONTRAST);
 	if ((tmp < 0) || (tmp > MAX_CONTRAST)) {
 		report(RPT_WARNING, "%s: Contrast must be between 0 and %d; using default %d",
 			drvthis->name, MAX_CONTRAST, DEFAULT_CONTRAST);
@@ -430,7 +439,7 @@ HD44780_init(Driver *drvthis)
 	p->contrast = tmp;
 
 	/* set brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	if ((tmp < 0) || (tmp > MAX_BRIGHTNESS)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and %d; using default %d",
 			drvthis->name, MAX_BRIGHTNESS, DEFAULT_BRIGHTNESS);
@@ -439,7 +448,7 @@ HD44780_init(Driver *drvthis)
 	p->brightness = tmp;
 
 	/* set backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	if ((tmp < 0) || (tmp > MAX_BRIGHTNESS)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and %d; using default %d",
 			drvthis->name, MAX_BRIGHTNESS, DEFAULT_OFFBRIGHTNESS);
@@ -508,11 +517,11 @@ HD44780_init(Driver *drvthis)
 
 			/* Read config value */
 			sprintf(buf, "keydirect_%1d", x+1);
-			s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
+			s = drvthis->config_get_string(drvthis, buf, NULL);
 
 			/* Was a key specified in the config file ? */
 			if (s) {
-				p->keyMapDirect[x] = strdup(s);
+				p->keyMapDirect[x] = s;
 				report(RPT_INFO, "HD44780: Direct key %d: \"%s\"", x, s);
 			}
 		}
@@ -526,11 +535,11 @@ HD44780_init(Driver *drvthis)
 
 				/* Read config value */
 				sprintf(buf, "keymatrix_%1d_%d", x+1, y+1);
-				s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
+				s = drvthis->config_get_string(drvthis, buf, NULL);
 
 				/* Was a key specified in the config file ? */
 				if (s) {
-					p->keyMapMatrix[y][x] = strdup(s);
+					p->keyMapMatrix[y][x] = s;
 					report(RPT_INFO, "HD44780: Matrix key %d %d: \"%s\"", x+1, y+1, s);
 				}
 			}
@@ -538,7 +547,7 @@ HD44780_init(Driver *drvthis)
 	}
 
 	/* Get configured charmap */
-	strncpy(conf_charmap, drvthis->config_get_string(drvthis->name, "charmap", 0, "hd44780_default"), MAX_CHARMAP_NAME_LENGTH);
+	strncpy(conf_charmap, drvthis->config_get_string(drvthis, "charmap", "hd44780_default"), MAX_CHARMAP_NAME_LENGTH);
 	conf_charmap[MAX_CHARMAP_NAME_LENGTH-1] = '\0';
 	p->charmap = charmap_get_index(conf_charmap);
 	if (p->charmap == -1) {
@@ -552,7 +561,7 @@ HD44780_init(Driver *drvthis)
 	report(RPT_INFO, "%s: Using %s charmap", drvthis->name, available_charmaps[p->charmap].name);
 
 	/* Get configured font bank */
-	tmp = drvthis->config_get_int(drvthis->name, "FontBank", 0, 0);
+	tmp = drvthis->config_get_long(drvthis, "fontbank", 0);
 	if ((tmp < 0) || (tmp > 3)) {
 		report(RPT_WARNING, "%s: FontBank must be between 0 and 3; using default %d", drvthis->name, 0);
 		tmp = 0;

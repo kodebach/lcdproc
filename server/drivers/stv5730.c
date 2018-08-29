@@ -303,7 +303,7 @@ stv5730_init (Driver *drvthis)
     /* Read config file */
 
     /* What port to use */
-    p->port = drvthis->config_get_int(drvthis->name, "Port", 0, LPTPORT);
+    p->port = drvthis->config_get_long(drvthis, "port", LPTPORT);
 
     /* End of config file parsing */
 

@@ -214,7 +214,7 @@ hd_init_pifacecad(Driver *drvthis)
 
 	/* READ CONFIG FILE */
 	/* Get serial device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device) - 1] = '\0';
 	report(RPT_INFO, "HD44780: PiFaceCAD: Using device '%s'", device);
 

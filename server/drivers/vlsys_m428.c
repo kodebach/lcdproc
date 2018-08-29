@@ -284,7 +284,7 @@ vlsys_m428_init(Driver *drvthis)
 
 	/* Get device path from configuration file */
 	strncpy(path,
-		drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE),
+		drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE),
 		sizeof(path));
 	path[sizeof(path) - 1] = '\0';
 	report(RPT_INFO, "%s: using device %s", drvthis->name, path);

@@ -80,7 +80,7 @@ t6963_init(Driver *drvthis)
 	debug(RPT_DEBUG, "T6963: reading config file...");
 
 	/* Read display size in pixels */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size) - 1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > T6963_MAX_WIDTH)
@@ -109,7 +109,7 @@ t6963_init(Driver *drvthis)
 	}
 
 	/* Which port? */
-	p->port_config->port = drvthis->config_get_int(drvthis->name, "Port", 0, DEFAULT_PORT);
+	p->port_config->port = drvthis->config_get_long(drvthis, "port", DEFAULT_PORT);
 	if ((p->port_config->port < 0x200) || (p->port_config->port > 0x400)) {
 		p->port_config->port = DEFAULT_PORT;
 		report(RPT_WARNING, "%s: Port value must be between 0x200 and 0x400. Using default 0x%03X",
@@ -117,9 +117,9 @@ t6963_init(Driver *drvthis)
 	}
 
 	/* Use bi-directional mode of LPT port? Default: yes */
-	p->port_config->bidirectLPT = drvthis->config_get_bool(drvthis->name, "bidirectional", 0, 1);
+	p->port_config->bidirectLPT = drvthis->config_get_bool(drvthis, "bidirectional", 1);
 	/* Additional delay necessary? Default: no */
-	p->port_config->delayBus = drvthis->config_get_bool(drvthis->name, "delaybus", 0, 0);
+	p->port_config->delayBus = drvthis->config_get_bool(drvthis, "delaybus", 0);
 
 	/* Initialize port and timing */
 	debug(RPT_DEBUG, "T6963: Initializing parallel port at 0x%03X", p->port_config->port);
@@ -168,7 +168,7 @@ t6963_init(Driver *drvthis)
 
 	/* Clear display */
 	t6963_clear(drvthis);
-	if (drvthis->config_get_bool(drvthis->name, "ClearGraphic", 0, 0) == 1)
+	if (drvthis->config_get_bool(drvthis, "cleargraphic", 0) == 1)
 		t6963_graphic_clear(drvthis);
 	t6963_flush(drvthis);
 

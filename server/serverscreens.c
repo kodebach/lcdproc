@@ -29,8 +29,7 @@
 #endif
 
 #include "shared/report.h"
-#include "shared/configfile.h"
-
+#include "shared/elektraconfig.h"
 #include "drivers.h"
 #include "clients.h"
 #include "render.h"
@@ -40,6 +39,7 @@
 #include "main.h"
 #include "serverscreens.h"
 
+#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 /* global variables */
 Screen *server_screen = NULL;
@@ -63,7 +63,13 @@ server_screen_init(void)
 	Widget *w;
 	int i;
 
-	has_hello_msg = config_has_key("Server", "Hello");
+	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	if (config == NULL) {
+		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
+		return -1;
+	}
+
+	has_hello_msg = econfig_exists(config, CONFIG_BASE_KEY"/general/hello");
 
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
@@ -99,8 +105,10 @@ server_screen_init(void)
 	if (has_hello_msg) {		/* show whole Hello message */
 		int i;
 
+		char buf[64];
 		for (i = 0; i < display_props->height; i++) {
-	 		const char *line = config_get_string("Server", "Hello", i, "");
+			snprintf(buf, 64, "%s/general/hello/#%d", CONFIG_BASE_KEY, i);
+	 		char *line = econfig_get_string(config, buf, "");
 			char id[8];
 
 			sprintf(id, "line%d", i+1);
@@ -109,8 +117,11 @@ server_screen_init(void)
 				strncpy(w->text, line, LCD_MAX_WIDTH);
 				w->text[LCD_MAX_WIDTH] = '\0';
 			}
+			free(line);
 		}
 	}
+
+	econfig_close(config);
 
 	/* And enqueue the screen */
 	screenlist_add(server_screen);
@@ -218,14 +229,23 @@ goodbye_screen(void)
 
 	drivers_clear();
 
-	if (config_has_key("Server", "GoodBye")) {	/* custom GoodBye */
+	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	if (config == NULL) {
+		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
+		return -1;
+	}
+
+	if (econfig_exists(config, CONFIG_BASE_KEY"/general/goodbye")) {	/* custom GoodBye */
 		int i;
 
 		/* loop over all display lines to read config & display message */
+		char buf[64];
 		for (i = 0; i < display_props->height; i++) {
-			const char *line = config_get_string("Server", "GoodBye", i, "");
+			snprintf(buf, 64, "%s/general/goodbye/#%d", CONFIG_BASE_KEY, i);
+			char *line = econfig_get_string(config, buf, "");
 
 			drivers_string(1, 1+i, line);
+			free(line);
 		}
 	}
 	else {		/* default GoodBye */

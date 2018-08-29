@@ -112,7 +112,7 @@ icp_a106_init(Driver *drvthis)
 
 	// READ CONFIG FILE:
 	// which serial device should be used
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE),
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE),
 		sizeof(device));
 	device[sizeof(device) - 1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, device);
@@ -122,7 +122,7 @@ icp_a106_init(Driver *drvthis)
 	int nCfgTextWidth = 0;
 	int nCfgTextHeight = 0;
 	strncpy(strSize,
-		drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE),
+		drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE),
 		sizeof(strSize));
 	strSize[sizeof(strSize) - 1] = '\0';
 	if ((sscanf(strSize, "%dx%d", &nCfgTextWidth, &nCfgTextHeight) != 2)

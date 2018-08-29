@@ -159,7 +159,7 @@ imon_init(Driver *drvthis)
 	/* Get settings from config file*/
 
 	/* Get device */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(buf));
 	buf[sizeof(buf)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, buf);
 
@@ -171,7 +171,7 @@ imon_init(Driver *drvthis)
 	}
 
 	/* Get size settings*/
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(buf));
 	buf[sizeof(buf)-1] = '\0';
 	if ((sscanf(buf , "%dx%d", &p->width, &p->height) != 2)
 	    || (p->width <= 0) || (p->width > LCD_MAX_WIDTH)
@@ -191,7 +191,7 @@ imon_init(Driver *drvthis)
 
 	/* Load character mapping table */
 	p->charmap = NULL;
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Charmap", 0, "none"), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "charmap", "none"), sizeof(buf));
 	buf[sizeof(buf)-1] = '\0';
 	for (i = 0; imon_charmaps[i] != NULL; i++) {
 		if (strcasecmp(imon_charmaps[i], buf) == 0) {

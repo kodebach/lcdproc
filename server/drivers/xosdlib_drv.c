@@ -88,11 +88,11 @@ xosdlib_drv_init (Driver *drvthis)
 	/* Read config file */
 
 	/* Which size */
-	if (drvthis->config_has_key(drvthis->name, "Size")) {
+	if (drvthis->config_exists(drvthis, "size")) {
 		int w;
 		int h;
 
-		size = drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE);
+		size = drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE);
 		debug(RPT_INFO, "%s: Size (in config) is '%s'", __FUNCTION__, size);
 		if ((sscanf(size, "%dx%d", &w, &h) != 2) ||
 		    (w <= 0) || (w > LCD_MAX_WIDTH) ||
@@ -117,7 +117,7 @@ xosdlib_drv_init (Driver *drvthis)
 	report(RPT_INFO, "%s: using size %dx%d", drvthis->name, p->width, p->height);
 
 	/* Which x/y offsets */
-	offset = drvthis->config_get_string(drvthis->name, "Offset", 0, DEFAULT_OFFSET);
+	offset = drvthis->config_get_string(drvthis, "offset", DEFAULT_OFFSET);
 	debug(RPT_INFO, "%s: Offset (in config) is '%s'", __FUNCTION__, offset);
 	if (sscanf(offset, "%dx%d", &x, &y) != 2) {
 		report(RPT_WARNING, "%s: cannot read Offset: %s. using default %s",
@@ -131,7 +131,7 @@ xosdlib_drv_init (Driver *drvthis)
 
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	debug(RPT_INFO, "%s: Brightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
@@ -141,7 +141,7 @@ xosdlib_drv_init (Driver *drvthis)
 	p->brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
@@ -151,8 +151,7 @@ xosdlib_drv_init (Driver *drvthis)
 	p->offbrightness = tmp;
 
 	/* which font */
-	strncpy(p->font, drvthis->config_get_string(drvthis->name, "Font",
-						    0, DEFAULT_FONT), sizeof(p->font));
+	strncpy(p->font, drvthis->config_get_string(drvthis, "font", DEFAULT_FONT), sizeof(p->font));
 	p->font[sizeof(p->font) - 1] = '\0';
 	debug(RPT_INFO, "%s: Font (in config) is '%s'", __FUNCTION__, p->font);
 

@@ -185,8 +185,7 @@ glcd_x11_init(Driver *drvthis)
 	memset(ct_data->backingstore, 0x00, p->framebuf.size);
 
 	/* Get and parse pixel size */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "x11_PixelSize",
-						0, X11_DEF_PIXEL_SIZE), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "x11_pixelsize", X11_DEF_PIXEL_SIZE), sizeof(buf));
 	buf[sizeof(buf) - 1] = '\0';
 
 	if ((sscanf(buf, "%d+%d", &ct_data->pixel, &ct_data->pgap) != 2) ||
@@ -200,20 +199,17 @@ glcd_x11_init(Driver *drvthis)
 	}
 
 	/* Get Pixel Color (pixel on color) */
-	ct_data->fgcolor = drvthis->config_get_int(drvthis->name,
-						   "x11_PixelColor", 0, X11_DEF_PIXEL_COLOR);
+	ct_data->fgcolor = drvthis->config_get_long(drvthis, "x11_pixelcolor", X11_DEF_PIXEL_COLOR);
 
 	/* Get Backlight Color (pixel off color) */
-	ct_data->bgcolor = drvthis->config_get_int(drvthis->name,
-						   "x11_BacklightColor", 0,
-						   X11_DEF_BACKLIGHT_COLOR);
+	ct_data->bgcolor = drvthis->config_get_long(drvthis, "x11_backlightcolor", X11_DEF_BACKLIGHT_COLOR);
 
 	/* Get Border size in pixels */
-	ct_data->border = drvthis->config_get_int(drvthis->name, "x11_Border", 0, X11_DEF_BORDER);
+	ct_data->border = drvthis->config_get_long(drvthis, "x11_border", X11_DEF_BORDER);
 
 	/* Get inverted setting */
 	ct_data->inverted =
-		drvthis->config_get_bool(drvthis->name, "x11_Inverted", 0, X11_DEF_INVERTED);
+		drvthis->config_get_bool(drvthis, "x11_inverted", X11_DEF_INVERTED);
 
 	/* Setup X11-Window */
 	XSetWindowAttributes wa;

@@ -437,7 +437,7 @@ done:
 	p->ccmode = standard;
 
 	/* set contrast */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", DEFAULT_CONTRAST);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Contrast must be between 0 and 1000; using default %d",
 			drvthis->name, DEFAULT_CONTRAST);
@@ -446,7 +446,7 @@ done:
 	p->contrast = tmp;
 
 	/* set brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
 			drvthis->name, DEFAULT_BRIGHTNESS);
@@ -455,7 +455,7 @@ done:
 	p->brightness = tmp;
 
 	/* set brightness while display is off */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
 			drvthis->name, DEFAULT_OFFBRIGHTNESS);
@@ -464,16 +464,16 @@ done:
 	p->offbrightness = tmp;
 
 	/* Backlight and key lights enable/disable */
-	p->backlight = drvthis->config_get_bool(drvthis->name, "Backlight", 0, DEFAULT_BACKLIGHT);
-	p->keylights = drvthis->config_get_bool(drvthis->name, "KeyLights", 0, DEFAULT_KEYLIGHTS);
-	p->linklights = drvthis->config_get_bool(drvthis->name, "LinkLights", 0, DEFAULT_LINKLIGHTS);
+	p->backlight = drvthis->config_get_bool(drvthis, "backlight", DEFAULT_BACKLIGHT);
+	p->keylights = drvthis->config_get_bool(drvthis, "keylights", DEFAULT_KEYLIGHTS);
+	p->linklights = drvthis->config_get_bool(drvthis, "linklights", DEFAULT_LINKLIGHTS);
 
 	/* allow individual lights to be set */
 	for (tmp = 0; tmp < KEYPAD_LIGHTS; tmp++) {
 		char configkey[32];
 
 		sprintf(configkey, "Key%dLight", tmp);
-		p->key_light[tmp] = drvthis->config_get_bool(drvthis->name, configkey, 0, 1);
+		p->key_light[tmp] = drvthis->config_get_bool(drvthis, configkey, 1);
 	}
 
 #ifdef HAVE_LIBUSB_1_0
@@ -486,7 +486,7 @@ done:
 	timerclear(p->key_wait_time);
 
 	/* Get key auto repeat delay */
-	tmp = drvthis->config_get_int(drvthis->name, "KeyRepeatDelay", 0, DEFAULT_REPEAT_DELAY);
+	tmp = drvthis->config_get_long(drvthis, "keyrepeatdelay", DEFAULT_REPEAT_DELAY);
 	if (tmp < 0 || tmp > 3000) {
 		report(RPT_WARNING, "%s: KeyRepeatDelay must be between 0-3000; using default %d",
 			drvthis->name, DEFAULT_REPEAT_DELAY);
@@ -495,7 +495,7 @@ done:
 	p->key_repeat_delay = tmp;
 
 	/* Get key auto repeat interval */
-	tmp = drvthis->config_get_int(drvthis->name, "KeyRepeatInterval", 0, DEFAULT_REPEAT_INTERVAL);
+	tmp = drvthis->config_get_long(drvthis, "keyrepeatinterval", DEFAULT_REPEAT_INTERVAL);
 	if (tmp < 0 || tmp > 3000) {
 		report(RPT_WARNING, "%s: KeyRepeatInterval must be between 0-3000; using default %d",
 			drvthis->name, DEFAULT_REPEAT_INTERVAL);
@@ -511,7 +511,7 @@ done:
 
 #else
 	/* Get Timeout for USB read of key presses */
-	tmp = drvthis->config_get_int(drvthis->name, "KeyTimeout", 0, DEFAULT_TIMEOUT);
+	tmp = drvthis->config_get_long(drvthis, "keytimeout", DEFAULT_TIMEOUT);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: KeyTimeout must be between 0 and 1000; using default %d",
 			drvthis->name, DEFAULT_TIMEOUT);
@@ -551,14 +551,14 @@ done:
 	picoLCD_set_contrast(drvthis, p->contrast);
 
 	/* setup LIRC */
-	lirchost = drvthis->config_get_string(drvthis->name, "LircHost", 0, NULL);
-	lircport = drvthis->config_get_int(drvthis->name, "LircPort", 0, DEFAULT_LIRCPORT);
+	lirchost = drvthis->config_get_string(drvthis, "lirchost", NULL);
+	lircport = drvthis->config_get_long(drvthis, "lircport", DEFAULT_LIRCPORT);
 	/* LIRC is only enabled if a hostname is set */
 	p->IRenabled = (lirchost != NULL && *lirchost != '\0') ? 1 : 0;
 
-	p->lirc_time_us = drvthis->config_get_bool(drvthis->name, "LircTime_us", 0, DEFAULT_LIRC_TIME_us);
+	p->lirc_time_us = drvthis->config_get_bool(drvthis, "lirctime_us", DEFAULT_LIRC_TIME_us);
 
-	tmp = drvthis->config_get_int(drvthis->name, "LircFlushThreshold", 0, DEFAULT_FLUSH_THRESHOLD);
+	tmp = drvthis->config_get_long(drvthis, "lircflushthreshold", DEFAULT_FLUSH_THRESHOLD);
 	/*
 	 * Enforce a sensible minimum. Only want to flush on gaps between IR
 	 * bursts not the spaces between marks.

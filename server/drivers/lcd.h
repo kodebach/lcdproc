@@ -30,6 +30,7 @@
 #define LCD_H
 
 #include <stddef.h>
+#include <stdbool.h>
 
 /* Maximum supported sizes */
 #define LCD_MAX_WIDTH 256
@@ -122,6 +123,9 @@ typedef enum {
 /* And how do we define the exported functions */
 #define MODULE_EXPORT
 
+typedef struct _KeySet	KeySet;
+typedef struct _Key Key;
+
 typedef struct lcd_logical_driver {
 
 	/* For explanation of variables and functions see docs/API-v0.5.txt */
@@ -198,14 +202,17 @@ typedef struct lcd_logical_driver {
 	/* Store the driver's private data */
 
 	/* Configfile functions */
-	/* See configfile.h for descriptions and usage. */
+	// TODO (kodebach): document
 
-	short (*config_get_bool)	(const char *sectionname, const char *keyname, int skip, short default_value);
-	long int (*config_get_int)	(const char *sectionname, const char *keyname, int skip, long int default_value);
-	double (*config_get_float)	(const char *sectionname, const char *keyname, int skip, double default_value);
-	const char *( *config_get_string)(const char *sectionname, const char *keyname, int skip, const char *default_value);
-	int (*config_has_section)	(const char *sectionname);
-	int (*config_has_key)		(const char *sectionname, const char *keyname);
+	KeySet* config;
+	Key* config_base_key;
+
+	bool (*config_get_bool)	(struct lcd_logical_driver * drvthis, const char *keyname, bool default_value);
+	long int (*config_get_long)	(struct lcd_logical_driver * drvthis, const char *keyname, long int default_value);
+	double (*config_get_double)	(struct lcd_logical_driver * drvthis, const char *keyname, double default_value);
+	char *( *config_get_string) (struct lcd_logical_driver * drvthis, const char *keyname, char *default_value);
+	long int (*config_get_enum) (struct lcd_logical_driver * drvthis, const char* keyname, const int default_value, const long int enum_size, const char** enum_values);
+	bool (*config_exists)		(struct lcd_logical_driver * drvthis, const char *keyname);
 
 	/* Display properties functions (for drivers that adapt to other loaded drivers) */
 	int (*request_display_width) ();

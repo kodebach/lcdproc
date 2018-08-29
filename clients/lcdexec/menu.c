@@ -159,6 +159,7 @@ MenuEntry* param_read(KeySet* config, Key* element)
 			break;
 		default:
 			report(RPT_DEBUG, "illegal parameter type");
+			menu_free(param);
 			return NULL;
 	}
 
@@ -178,7 +179,14 @@ int param_read_callback(KeySet* config, size_t index, Key* element, void* userda
 
 	MenuEntry *entry = (MenuEntry*) userdata;	
 	
-	entry->numChildren++; // TODO (kodebach): add param to entry->children	
+	entry->numChildren++;
+	if (entry->children == NULL) {
+		entry->children = param;
+		entry->lastChild = param;
+	} else {
+		entry->lastChild->next = param;
+		entry->lastChild = entry->lastChild->next;
+	}
 
 	return 0;
 }
@@ -275,7 +283,14 @@ int entry_read_callback(KeySet* config, size_t index, Key* element, void* userda
 		return -1;
 	}
 
-	menu->numChildren++; // TODO (kodebach): add entryOrSubMenu to menu->children
+	menu->numChildren++;
+	if (menu->children == NULL) {
+		menu->children = entryOrSubMenu;
+		menu->lastChild = entryOrSubMenu;
+	} else {
+		menu->lastChild->next = entryOrSubMenu;
+		menu->lastChild = menu->lastChild->next;
+	}
 
 	return 0;
 }

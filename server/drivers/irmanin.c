@@ -89,8 +89,7 @@ irmanin_init (Driver *drvthis)
 	/* Read config file */
 
 	/* What device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0,
-						   ""), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", ""), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	if (p->device[0] != '\0') {
 		report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
@@ -98,8 +97,7 @@ irmanin_init (Driver *drvthis)
 	}
 
 	/* What config file should be used */
-	strncpy(p->config, drvthis->config_get_string(drvthis->name, "Config", 0,
-						   ""), sizeof(p->config));
+	strncpy(p->config, drvthis->config_get_string(drvthis, "config", ""), sizeof(p->config));
 	p->config[sizeof(p->config)-1] = '\0';
 	if (p->config[0] != '\0')
 		ptrconfig = p->config;

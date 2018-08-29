@@ -116,19 +116,19 @@ serialVFD_init (Driver *drvthis)
 	p->hw_cmd[next_line][0] = 0;	/* disable line / set normal mode */
 
 	/* Connection type: parallel or serial? */
-	p->use_parallel	= drvthis->config_get_bool(drvthis->name, "use_parallel", 0, 0);
+	p->use_parallel	= drvthis->config_get_bool(drvthis, "use_parallel", 0);
 
 	/* Which device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
 	if (p->use_parallel) {
-		p->port	= drvthis->config_get_int(drvthis->name, "port", 0, DEFAULT_LPTPORT);
+		p->port	= drvthis->config_get_long(drvthis, "port", DEFAULT_LPTPORT);
 	}
 	else {
 		/* Which speed */
-		tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, DEFAULT_SPEED);
+		tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 		if ((tmp != 1200) && (tmp != 2400) && (tmp != 9600) && (tmp != 19200) && (tmp != 115200)) {
 			report(RPT_WARNING, "%s: Speed must be 1200, 2400, 9600, 19200 or 115200. Using default %d",
 				drvthis->name, DEFAULT_SPEED);
@@ -142,7 +142,7 @@ serialVFD_init (Driver *drvthis)
 	}
 
 	/* Which size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -155,7 +155,7 @@ serialVFD_init (Driver *drvthis)
 	p->height = h;
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_ON_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_ON_BRIGHTNESS);
 	debug(RPT_INFO, "%s: Brightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
@@ -165,7 +165,7 @@ serialVFD_init (Driver *drvthis)
 	p->on_brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFF_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFF_BRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
@@ -175,13 +175,13 @@ serialVFD_init (Driver *drvthis)
 	p->off_brightness = tmp;
 
 	/* ISO 8859 1 */
-	p->ISO_8859_1 = drvthis->config_get_bool(drvthis->name, "ISO_8859_1", 0, 1);
+	p->ISO_8859_1 = drvthis->config_get_bool(drvthis, "iso_8859_1", 1);
 
 	/* Which displaytype */
-	p->display_type = drvthis->config_get_int(drvthis->name, "Type", 0, DEFAULT_DISPLAYTYPE);
+	p->display_type = drvthis->config_get_long(drvthis, "type", DEFAULT_DISPLAYTYPE);
 
 	/* Number of custom characters */
-	tmp = drvthis->config_get_int(drvthis->name, "Custom-Characters", 0, CC_UNSET);
+	tmp = drvthis->config_get_long(drvthis, "custom-characters", CC_UNSET);
 	if ((tmp < 0) || (tmp > 99)) {
 		report(RPT_WARNING, "%s: The number of Custom-Characters must be between 0 and 99. Using default",
 			drvthis->name, 0);
@@ -228,7 +228,7 @@ serialVFD_init (Driver *drvthis)
 
 	/* parallel port wait, overwrites value set by display specific data */
 	tmp = p->para_wait;
-	p->para_wait = drvthis->config_get_int(drvthis->name, "PortWait", 0, p->para_wait);
+	p->para_wait = drvthis->config_get_long(drvthis, "portwait", p->para_wait);
 
 	/* load user defined character mapping table */
 	if ((p->usr_chr_load_mapping[0] == 0) && (p->usr_chr_load_mapping[1] == 0)){ //this should not happen if usr_chr_load_mapping had been set

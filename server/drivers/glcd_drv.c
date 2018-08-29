@@ -74,7 +74,7 @@ glcd_init(Driver *drvthis)
 	PrivateData *p;
 	int i;
 	int (*init_fn) (Driver *drvthis)= NULL;
-	const char *s;
+	char *s;
 	char size[200];
 	int w, h, tmp;
 
@@ -88,7 +88,7 @@ glcd_init(Driver *drvthis)
 		return -1;
 
 	/* Get and search for the connection type */
-	s = drvthis->config_get_string(drvthis->name, "ConnectionType", 0, "t6963");
+	s = drvthis->config_get_string(drvthis, "connectiontype", "t6963");
 	for (i = 0; (connectionMapping[i].name != NULL) &&
 	     (strcasecmp(s, connectionMapping[i].name) != 0); i++);
 	if (connectionMapping[i].name == NULL) {
@@ -119,7 +119,7 @@ glcd_init(Driver *drvthis)
 	p->glcd_functions->poll_keys = NULL;
 
 	/* Read display size in pixels */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, GLCD_DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", GLCD_DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size) - 1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > GLCD_MAX_WIDTH)
@@ -136,7 +136,7 @@ glcd_init(Driver *drvthis)
 	debug(RPT_INFO, "%s: size (first) = %d", drvthis->name, p->framebuf.size);
 
 	/* Set contrast */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, GLCD_DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", GLCD_DEFAULT_CONTRAST);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Contrast must be between 0 and 1000; using default %d",
 			drvthis->name, GLCD_DEFAULT_CONTRAST);
@@ -145,7 +145,7 @@ glcd_init(Driver *drvthis)
 	p->contrast = tmp;
 
 	/* Set brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, GLCD_DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", GLCD_DEFAULT_BRIGHTNESS);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
 			drvthis->name, GLCD_DEFAULT_BRIGHTNESS);
@@ -154,7 +154,7 @@ glcd_init(Driver *drvthis)
 	p->brightness = tmp;
 
 	/* Set backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, GLCD_DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", GLCD_DEFAULT_OFFBRIGHTNESS);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
 			drvthis->name, GLCD_DEFAULT_OFFBRIGHTNESS);
@@ -223,11 +223,11 @@ glcd_init(Driver *drvthis)
 
 		/* Read config value */
 		sprintf(buf, "KeyMap_%c", i + 'A');
-		s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
+		s = drvthis->config_get_string(drvthis, buf, NULL);
 
 		/* Was a key specified in the config file ? */
 		if (s) {
-			p->keyMap[i] = strdup(s);
+			p->keyMap[i] = s;
 			debug(RPT_INFO, "%s: Key '%c' = \"%s\"", drvthis->name, i + 'A', s);
 		}
 	}
@@ -240,7 +240,7 @@ glcd_init(Driver *drvthis)
 	timerclear(p->key_wait_time);
 
 	/* Get key auto repeat delay */
-	tmp = drvthis->config_get_int(drvthis->name, "KeyRepeatDelay", 0, GLCD_DEFAULT_REPEAT_DELAY);
+	tmp = drvthis->config_get_long(drvthis, "keyrepeatdelay", GLCD_DEFAULT_REPEAT_DELAY);
 	if (tmp < 0 || tmp > 3000) {
 		report(RPT_WARNING, "%s: KeyRepeatDelay must be between 0-3000; using default %d",
 			drvthis->name, GLCD_DEFAULT_REPEAT_DELAY);
@@ -249,7 +249,7 @@ glcd_init(Driver *drvthis)
 	p->key_repeat_delay = tmp;
 
 	/* Get key auto repeat interval */
-	tmp = drvthis->config_get_int(drvthis->name, "KeyRepeatInterval", 0, GLCD_DEFAULT_REPEAT_INTERVAL);
+	tmp = drvthis->config_get_long(drvthis, "keyrepeatinterval", GLCD_DEFAULT_REPEAT_INTERVAL);
 	if (tmp < 0 || tmp > 3000) {
 		report(RPT_WARNING, "%s: KeyRepeatInterval must be between 0-3000; using default %d",
 			drvthis->name, GLCD_DEFAULT_REPEAT_INTERVAL);

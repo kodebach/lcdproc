@@ -195,7 +195,7 @@ hd_init_serial(Driver *drvthis)
 	}
 
 	/* Get bitrate */
-	conf_bitrate = drvthis->config_get_int(drvthis->name, "Speed", 0, SERIAL_IF.default_bitrate);
+	conf_bitrate = drvthis->config_get_long(drvthis, "speed", SERIAL_IF.default_bitrate);
 	if (conf_bitrate == 0)
 		conf_bitrate = SERIAL_IF.default_bitrate;
 	if (convert_bitrate(conf_bitrate, &bitrate)) {
@@ -205,7 +205,7 @@ hd_init_serial(Driver *drvthis)
 	report(RPT_INFO,"HD44780: serial: using speed: %d", conf_bitrate);
 
 	/* Get serial device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "device", 0, DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device)-1] = '\0';
 	report(RPT_INFO,"HD44780: serial: using device: %s", device);
 

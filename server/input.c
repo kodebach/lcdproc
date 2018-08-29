@@ -17,7 +17,7 @@
 
 #include "shared/sockets.h"
 #include "shared/report.h"
-#include "shared/configfile.h"
+#include "shared/elektraconfig.h"
 #include "shared/LL.h"
 
 #include "drivers.h"
@@ -31,6 +31,7 @@
 #include "input.h"
 #include "render.h" /* For server_msg* */
 
+#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 LinkedList *keylist;
 char *toggle_rotate_key;
@@ -51,12 +52,20 @@ int input_init(void)
 
 	keylist = LL_new();
 
+	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	if (config == NULL) {
+		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
+		return -1;
+	}
+
 	/* Get rotate/scroll keys from config file */
-	toggle_rotate_key = strdup(config_get_string("server", "ToggleRotateKey", 0, "Enter"));
-	prev_screen_key = strdup(config_get_string("server", "PrevScreenKey", 0, "Left"));
-	next_screen_key = strdup(config_get_string("server", "NextScreenKey", 0, "Right"));
-	scroll_up_key = strdup(config_get_string("server", "ScrollUpKey", 0, "Up"));
-	scroll_down_key = strdup(config_get_string("server", "ScrollDownKey", 0, "Down"));
+	toggle_rotate_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/togglerotatekey", "Enter");
+	prev_screen_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/prevscreenkey", "Left");
+	next_screen_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/nextscreenkey", "Right");
+	scroll_up_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/scrollupkey", "Up");
+	scroll_down_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/dcrolldownkey", "Down");
+
+	econfig_close(config);
 
 	return 0;
 }

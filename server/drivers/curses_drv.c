@@ -178,29 +178,29 @@ curses_init (Driver *drvthis)
 	/* Get color settings */
 
 	/* foreground color */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Foreground", 0, CONF_DEF_FOREGR), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "foreground", CONF_DEF_FOREGR), sizeof(buf));
 	buf[sizeof(buf)-1] = '\0';
 	fore_color = get_color_by_name(buf, DEFAULT_FOREGROUND_COLOR);
 	debug(RPT_DEBUG, "%s: using foreground color %s", drvthis->name, buf);
 
 	/* background color */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Background", 0, CONF_DEF_BACKGR), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "background", CONF_DEF_BACKGR), sizeof(buf));
 	buf[sizeof(buf)-1] = '\0';
 	back_color = get_color_by_name(buf, DEFAULT_BACKGROUND_COLOR);
 	debug(RPT_DEBUG, "%s: using background color %s", drvthis->name, buf);
 
 	/* backlight color */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Backlight", 0, CONF_DEF_BACKLIGHT), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "backlight", CONF_DEF_BACKLIGHT), sizeof(buf));
 	buf[sizeof(buf)-1] = '\0';
 	backlight_color = get_color_by_name(buf, DEFAULT_BACKGROUND_COLOR);
 	debug(RPT_DEBUG, "%s: using backlight color %s", drvthis->name, buf);
 
 	/* use ACS characters? */
-	p->useACS = drvthis->config_get_bool(drvthis->name, "UseACS", 0, CONF_DEF_USEACS);
+	p->useACS = drvthis->config_get_bool(drvthis, "useacs", CONF_DEF_USEACS);
 	debug(RPT_DEBUG, "%s: using ACS %s", drvthis->name, (p->useACS) ? "ON" : "OFF");
 
 	/* draw border ? */
-	p->drawBorder = drvthis->config_get_bool(drvthis->name, "DrawBorder", 0, CONF_DEF_DRAWBORDER);
+	p->drawBorder = drvthis->config_get_bool(drvthis, "drawborder", CONF_DEF_DRAWBORDER);
 	debug(RPT_DEBUG, "%s: drawing Border %s", drvthis->name, (p->drawBorder) ? "ON" : "OFF");
 
 	/* Get size settings */
@@ -212,7 +212,7 @@ curses_init (Driver *drvthis)
 	}
 	else {
 		/* Use our own size from config file */
-		strncpy(buf, drvthis->config_get_string(drvthis->name, "Size", 0, CONF_DEF_SIZE), sizeof(buf));
+		strncpy(buf, drvthis->config_get_string(drvthis, "size", CONF_DEF_SIZE), sizeof(buf));
 		buf[sizeof(buf)-1] = '\0';
 		if ((sscanf(buf , "%dx%d", &p->width, &p->height) != 2)
 		    || (p->width <= 0) || (p->width > LCD_MAX_WIDTH)
@@ -224,7 +224,7 @@ curses_init (Driver *drvthis)
 	}
 
 	/*Get position settings*/
-	tmp = drvthis->config_get_int(drvthis->name, "TopLeftX", 0, CONF_DEF_TOP_LEFT_X);
+	tmp = drvthis->config_get_long(drvthis, "topleftx", CONF_DEF_TOP_LEFT_X);
 	if ((tmp < 0) || (tmp > 255)) {
 		report(RPT_WARNING, "%s: TopLeftX must be between 0 and 255; using default %d",
 				drvthis->name, CONF_DEF_TOP_LEFT_X);
@@ -232,7 +232,7 @@ curses_init (Driver *drvthis)
 	}
 	p->xoffs = tmp;
 
-	tmp = drvthis->config_get_int(drvthis->name, "TopLeftY", 0, CONF_DEF_TOP_LEFT_Y);
+	tmp = drvthis->config_get_long(drvthis, "toplefty", CONF_DEF_TOP_LEFT_Y);
 	if ((tmp < 0) || (tmp > 255)) {
 		report(RPT_WARNING, "%s: TopLeftY must be between 0 and 255; using default %d",
 				drvthis->name, CONF_DEF_TOP_LEFT_Y);

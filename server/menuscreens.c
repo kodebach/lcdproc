@@ -29,7 +29,7 @@
 #include "screen.h"
 #include "screenlist.h"
 #include "menuscreens.h"
-#include "shared/configfile.h"
+#include "shared/elektraconfig.h"
 #include "shared/report.h"
 #include "input.h"
 #include "driver.h"
@@ -42,6 +42,7 @@
 /* Next include files are needed for settings that we can modify */
 #include "render.h"
 
+#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 char *menu_key;
 char *enter_key;
@@ -80,11 +81,16 @@ MenuEventFunc(brightness_handler);
 int
 menuscreens_init(void)
 {
-	const char *tmp;
+	char *tmp;
 
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
-	menu_permissive_goto = config_get_bool("menu", "PermissiveGoto", 0, 0);
+	KeySet* config = econfig_open(CONFIG_BASE_KEY"/menu");
+	if (config == NULL) {
+		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
+		return -1;
+	}
+	menu_permissive_goto = econfig_get_bool(config, CONFIG_BASE_KEY"/menu/permissivegoto", false);
 
 	/*
 	 * Get keys from config file: MenuKey, EnterKey, UpKey, DownKey,
@@ -93,40 +99,43 @@ menuscreens_init(void)
 	 */
 	keymask = 0;
 	menu_key = enter_key = NULL;
-	tmp = config_get_string("menu", "MenuKey", 0, NULL);
+	tmp = econfig_get_string(config, CONFIG_BASE_KEY"/menukey", NULL);
 	if (tmp != NULL) {
 		menu_key = strdup(tmp);
 		keymask |= MENUTOKEN_MENU;
 	}
-	tmp = config_get_string("menu", "EnterKey", 0, NULL);
+	tmp = econfig_get_string(config, CONFIG_BASE_KEY"/enterkey", NULL);
 	if (tmp != NULL) {
 		enter_key = strdup(tmp);
 		keymask |= MENUTOKEN_ENTER;
 	}
 
 	up_key = down_key = NULL;
-	tmp = config_get_string("menu", "UpKey", 0, NULL);
+	tmp = econfig_get_string(config, CONFIG_BASE_KEY"/upkey", NULL);
 	if (tmp != NULL) {
 		up_key = strdup(tmp);
 		keymask |= MENUTOKEN_UP;
 	}
-	tmp = config_get_string("menu", "DownKey", 0, NULL);
+	tmp = econfig_get_string(config, CONFIG_BASE_KEY"/downkey", NULL);
 	if (tmp != NULL) {
 		down_key = strdup(tmp);
 		keymask |= MENUTOKEN_DOWN;
 	}
 
 	left_key = right_key = NULL;
-	tmp = config_get_string("menu", "LeftKey", 0, NULL);
+	tmp = econfig_get_string(config, CONFIG_BASE_KEY"/leftkey", NULL);
 	if (tmp != NULL) {
 		left_key = strdup(tmp);
 		keymask |= MENUTOKEN_LEFT;
 	}
-	tmp = config_get_string("menu", "RightKey", 0, NULL);
+	tmp = econfig_get_string(config, CONFIG_BASE_KEY"/rightkey", NULL);
 	if (tmp != NULL) {
 		right_key = strdup(tmp);
 		keymask |= MENUTOKEN_RIGHT;
 	}
+	free(tmp);
+
+	econfig_close(config);
 
 	/* Now reserve the keys that were defined */
 	if (menu_key != NULL)

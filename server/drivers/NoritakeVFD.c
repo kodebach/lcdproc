@@ -133,12 +133,12 @@ NoritakeVFD_init (Driver *drvthis)
 
 	/* Read config file */
 	/* Which device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
 	/* Which size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -151,7 +151,7 @@ NoritakeVFD_init (Driver *drvthis)
 	p->height = h;
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
 			drvthis->name, DEFAULT_BRIGHTNESS);
@@ -160,7 +160,7 @@ NoritakeVFD_init (Driver *drvthis)
 	p->brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
@@ -170,7 +170,7 @@ NoritakeVFD_init (Driver *drvthis)
 	p->offbrightness = tmp;
 
 	/* Which speed */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	if ((tmp != 1200) && (tmp != 2400) && (tmp != 9600) && (tmp != 19200) && (tmp != 115200)) {
 		report(RPT_WARNING, "%s: Speed must be 1200, 2400, 9600, 19200 or 115200; using default %d",
 			drvthis->name, DEFAULT_SPEED);
@@ -183,7 +183,7 @@ NoritakeVFD_init (Driver *drvthis)
 	else if (tmp == 115200) p->speed = B115200;
 
 	/* Which parity */
-	tmp = drvthis->config_get_int(drvthis->name, "Parity", 0, DEFAULT_PARITY);
+	tmp = drvthis->config_get_long(drvthis, "parity", DEFAULT_PARITY);
 	if ((tmp != 0) && (tmp != 1) && (tmp != 2) ) {
 		report(RPT_WARNING, "%s: Parity must be 0(=none), 1(=odd), 2(=even); using default %d",
 			drvthis->name, DEFAULT_PARITY);
@@ -194,7 +194,7 @@ NoritakeVFD_init (Driver *drvthis)
 
 
 	/* Reboot display? */
-	reboot = drvthis->config_get_bool(drvthis->name, "Reboot", 0, 0);
+	reboot = drvthis->config_get_bool(drvthis, "reboot", 0);
 
 	/* Set up io port correctly, and open it...*/
 	debug(RPT_DEBUG, "%s: Opening device: %s", __FUNCTION__, p->device);

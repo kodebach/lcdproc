@@ -198,7 +198,7 @@ unsigned char sed1330_readkeypad(PrivateData * p, unsigned int YData);
 MODULE_EXPORT int
 sed1330_init(Driver * drvthis)
 {
-	const char *s;
+	char *s;
 	PrivateData *p;
 	unsigned char data[8];
 
@@ -220,10 +220,10 @@ sed1330_init(Driver * drvthis)
 	/* READ THE CONFIG FILE */
 
 	/* Port. Default: 0x278 (second parallel port!) */
-	p->port = drvthis->config_get_int(drvthis->name, "Port", 0, 0x278);
+	p->port = drvthis->config_get_long(drvthis, "port", 0x278);
 
 	/* Char size */
-	s = drvthis->config_get_string(drvthis->name, "CellSize", 0, "6x10");
+	s = drvthis->config_get_string(drvthis, "cellsize", "6x10");
 	if (sscanf(s, "%dx%d", &(p->cellwidth), &(p->cellheight)) != 2) {
 		report(RPT_ERR, "%s: cannot interpret CellSize %s",
 		       drvthis->name, s);
@@ -237,7 +237,7 @@ sed1330_init(Driver * drvthis)
 	}
 
 	/* Type */
-	s = drvthis->config_get_string(drvthis->name, "Type", 0, NULL);
+	s = drvthis->config_get_string(drvthis, "type", NULL);
 	if (s == NULL) {
 		report(RPT_ERR, "%s: you need to specify the display type",
 		       drvthis->name);
@@ -289,7 +289,7 @@ sed1330_init(Driver * drvthis)
 	 * so it even works with config files missing that ConnectionType entry
 	 * in sed1330 driver section.
 	 */
-	s = drvthis->config_get_string(drvthis->name, "ConnectionType", 0, "classic");
+	s = drvthis->config_get_string(drvthis, "connectiontype", "classic");
 
 	/* Set wiring initialization parameters based on ConnectionType */
 	if (strcmp(s, "classic") == 0) {
@@ -309,7 +309,7 @@ sed1330_init(Driver * drvthis)
 	report(RPT_INFO, "%s: Using ConnectionType %s", drvthis->name, s);
 
 	/* Is a keypad attached? Default: no */
-	p->have_keypad = drvthis->config_get_bool(drvthis->name, "keypad", 0, 0);
+	p->have_keypad = drvthis->config_get_bool(drvthis, "keypad", 0);
 
 	/* Set up keymap */
 	if (p->have_keypad) {
@@ -324,11 +324,11 @@ sed1330_init(Driver * drvthis)
 
 			/* Read config value */
 			sprintf(buf, "keydirect_%1d", x + 1);
-			s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
+			s = drvthis->config_get_string(drvthis, buf, NULL);
 
 			/* Was a key specified in the config file ? */
 			if (s != NULL) {
-				p->keyMapDirect[x] = strdup(s);
+				p->keyMapDirect[x] = s;
 				report(RPT_INFO, "%s: Direct key %d: \"%s\"",
 				       drvthis->name, x, s);
 			}
@@ -344,11 +344,11 @@ sed1330_init(Driver * drvthis)
 
 				/* Read config value */
 				sprintf(buf, "keymatrix_%1d_%d", x + 1, y + 1);
-				s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
+				s = drvthis->config_get_string(drvthis, buf, NULL);
 
 				/* Was a key specified in the config file ? */
 				if (s != NULL) {
-					p->keyMapMatrix[y][x] = strdup(s);
+					p->keyMapMatrix[y][x] = s;
 					report(RPT_INFO, "%s: Matrix key %d,%d: \"%s\"",
 					       drvthis->name, x, y, s);
 				}

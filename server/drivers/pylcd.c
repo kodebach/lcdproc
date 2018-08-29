@@ -325,7 +325,7 @@ pyramid_init(Driver *drvthis)
      */
 
     /* Which serial device should be used? */
-    strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, "/dev/lcd"), sizeof(p->device));
+    strncpy(p->device, drvthis->config_get_string(drvthis, "device", "/dev/lcd"), sizeof(p->device));
     p->device[sizeof(p->device) - 1] = '\0';
     report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
@@ -469,22 +469,22 @@ pyramid_flush(Driver *drvthis)
 	 */
 	for (i = 1; i < 33; i++) {
 	    switch ((unsigned char)mesg[i]) {
-	    case 0xe4:		/* ä */
+	    case 0xe4:		/* ï¿½ */
 		mesg[i] = 0xe1;
 		break;
-	    case 0xf6:		/* ö */
+	    case 0xf6:		/* ï¿½ */
 		mesg[i] = 0xef;
 		break;
-	    case 0xfc:		/* ü */
+	    case 0xfc:		/* ï¿½ */
 		mesg[i] = 0xf5;
 		break;
-	    case 0xdf:		/* ß */
+	    case 0xdf:		/* ï¿½ */
 		mesg[i] = 0xe2;
 		break;
-	    case 0xb7:		/* · */
+	    case 0xb7:		/* ï¿½ */
 		mesg[i] = 0xa5;
 		break;
-	    case 0xb0:		/* ° */
+	    case 0xb0:		/* ï¿½ */
 		mesg[i] = 0xdf;
 		break;
 	    }

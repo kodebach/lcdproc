@@ -118,13 +118,12 @@ glk_init(Driver *drvthis)
   /* Read config file */
 
   /* What device should be used */
-  strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0,
-					     GLK_DEFAULT_DEVICE), sizeof(p->device));
+  strncpy(p->device, drvthis->config_get_string(drvthis, "device", GLK_DEFAULT_DEVICE), sizeof(p->device));
   p->device[sizeof(p->device)-1] = '\0';
   report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
   /* What speed to use */
-  p->speed = drvthis->config_get_int(drvthis->name, "Speed", 0, 19200);
+  p->speed = drvthis->config_get_long(drvthis, "speed", 19200);
 
   if (p->speed == 9600)       p->speed = B9600;
   else if (p->speed == 19200) p->speed = B19200;
@@ -138,7 +137,7 @@ glk_init(Driver *drvthis)
   }
 
   /* Which contrast */
-  p->contrast = drvthis->config_get_int(drvthis->name, "Contrast" , 0 , GLK_DEFAULT_CONTRAST);
+  p->contrast = drvthis->config_get_long(drvthis, "Contrast", GLK_DEFAULT_CONTRAST);
   if ((p->contrast < 0) || (p->contrast > 1000)) {
     report(RPT_WARNING, "%s: Contrast must be between 0 and 1000. Using default %d",
 		    drvthis->name, GLK_DEFAULT_CONTRAST);

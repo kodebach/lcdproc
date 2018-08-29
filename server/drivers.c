@@ -22,8 +22,7 @@
 
 #include "shared/LL.h"
 #include "shared/report.h"
-#include "shared/configfile.h"
-
+#include "shared/elektraconfig.h"
 #include "driver.h"
 #include "drivers.h"
 #include "widget.h"
@@ -34,6 +33,7 @@ DisplayProps *display_props = NULL;		/**< properties of the display */
 
 #define ForAllDrivers(drv) for (drv = LL_GetFirst(loaded_drivers); drv; drv = LL_GetNext(loaded_drivers))
 
+#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 /**
  * Load driver based on "DriverPath" config setting and section name or
@@ -64,12 +64,27 @@ drivers_load_driver(const char *name)
 		}
 	}
 
-	/* Retrieve data from config file */
-	s = config_get_string("server", "DriverPath", 0, "");
-	driverpath = malloc(strlen(s) + 1);
-	strcpy(driverpath, s);
+	KeySet* config = econfig_open(CONFIG_BASE_KEY);
+	if (config == NULL) {
+		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
+		return -1;
+	}
 
-	s = config_get_string(name, "File", 0, NULL);
+	/* Retrieve data from config file */
+	driverpath = econfig_get_string(config, CONFIG_BASE_KEY"general/driverpath", "");
+
+	static const char* fileKey = "file";
+	char* keyName = malloc(strlen(CONFIG_BASE_KEY) + 1 + strlen(name) + 1 + strlen(fileKey) + 1); // baseKey + / + name + / + fileKey + \0
+	strcpy(keyName, CONFIG_BASE_KEY);
+	strcat(keyName, "/");
+	strcat(keyName, name);
+	strcat(keyName, "/");
+	strcat(keyName, fileKey);
+		
+	s = econfig_get_string(config, keyName, NULL);
+	free(keyName);
+	econfig_close(config);
+
 	if (s) {
 		filename = malloc(strlen(driverpath) + strlen(s) + 1);
 		strcpy(filename, driverpath);

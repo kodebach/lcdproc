@@ -99,12 +99,11 @@ MODULE_EXPORT int irtrans_init(Driver *drvthis)
 
     /* initialize private data */
     p->has_backlight =
-        drvthis->config_get_bool(drvthis->name, "Backlight", 0, 0);
+        drvthis->config_get_bool(drvthis, "backlight", 0);
     report(RPT_INFO, "%s: Backlight %d", drvthis->name, p->backlight);
 
     strncpy(p->hostname,
-            drvthis->config_get_string(drvthis->name, "Hostname", 0,
-                                       IRTRANS_DEFAULT_HOSTNAME),
+            drvthis->config_get_string(drvthis, "hostname", IRTRANS_DEFAULT_HOSTNAME),
             sizeof(p->hostname));
     p->hostname[sizeof(p->hostname) - 1] = '\0';
     report(RPT_INFO, "%s: Hostname is %s", drvthis->name, p->hostname);
@@ -118,8 +117,7 @@ MODULE_EXPORT int irtrans_init(Driver *drvthis)
     } else {
         /* Use our own size from config file */
         strncpy(buf,
-                drvthis->config_get_string(drvthis->name, "Size", 0,
-                                           IRTRANS_DEFAULT_SIZE),
+                drvthis->config_get_string(drvthis, "size", IRTRANS_DEFAULT_SIZE),
                 sizeof(buf));
         buf[sizeof(buf) - 1] = '\0';
         if ((sscanf(buf, "%dx%d", &p->width, &p->height) != 2)

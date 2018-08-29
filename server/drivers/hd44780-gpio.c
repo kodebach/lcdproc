@@ -62,7 +62,7 @@ init_gpio_pin(Driver *drvthis, ugpio_t **pin, const char *name)
 	int number;
 
 	snprintf(config_key, sizeof(config_key), "pin_%s", name);
-	number = drvthis->config_get_int(drvthis->name, config_key, 0, -1);
+	number = drvthis->config_get_int(drvthis, config_key, -1);
 	if (number == -1)
 		return -1;
 

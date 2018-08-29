@@ -100,8 +100,7 @@ joy_init (Driver *drvthis)
 	/* Read config file (1st part) */
 
 	/* What device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0,
-						   JOY_DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", JOY_DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
@@ -138,20 +137,20 @@ joy_init (Driver *drvthis)
 
 	for (i = 0; i < p->axes; i++) {
 		char mapkey[50];
-		const char *mapval;
+		char *mapval;
 
 		snprintf(mapkey, sizeof(mapkey), "Map_Axis%dneg", i+1);
-		mapval = drvthis->config_get_string(drvthis->name, mapkey, 0, NULL);
+		mapval = drvthis->config_get_string(drvthis, mapkey, NULL);
 		if (mapval != NULL) {
-			p->axismap[2*i] = strdup(mapval);
+			p->axismap[2*i] = mapval;
 			report(RPT_DEBUG, "%s: map Axis%dneg to %s",
 					drvthis->name, i+1, p->axismap[2*i]);
 		}
 
 		snprintf(mapkey, sizeof(mapkey), "Map_Axis%dpos", i+1);
-		mapval = drvthis->config_get_string(drvthis->name, mapkey, 0, NULL);
+		mapval = drvthis->config_get_string(drvthis, mapkey, NULL);
 		if (mapval != NULL) {
-			p->axismap[2*i + 1] = strdup(mapval);
+			p->axismap[2*i + 1] = mapval;
 			report(RPT_DEBUG, "%s: map Axis%dpos to %s",
 					drvthis->name, i+1, p->axismap[2*i + 1]);
 		}
@@ -159,12 +158,12 @@ joy_init (Driver *drvthis)
 
 	for (i = 0; i < p->buttons; i++) {
 		char mapkey[50];
-		const char *mapval;
+		char *mapval;
 
 		snprintf(mapkey, sizeof(mapkey), "Map_Button%d", i+1);
-		mapval = drvthis->config_get_string(drvthis->name, mapkey, 0, NULL);
+		mapval = drvthis->config_get_string(drvthis, mapkey, NULL);
 		if (mapval != NULL) {
-			p->buttonmap[i] = strdup(mapval);
+			p->buttonmap[i] = mapval;
 			report(RPT_DEBUG, "%s: map Button%d to %s",
 					drvthis->name, i+1, p->buttonmap[i]);
 		}

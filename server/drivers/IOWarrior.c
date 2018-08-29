@@ -268,16 +268,14 @@ IOWarrior_init(Driver *drvthis)
   /* Read config file */
 
   /* What IO-Warrior device should be used */
-  strncpy(serial, drvthis->config_get_string(drvthis->name, "SerialNumber",
-                                             0, DEFAULT_SERIALNO), sizeof(serial));
+  strncpy(serial, drvthis->config_get_string(drvthis, "serialnumber", DEFAULT_SERIALNO), sizeof(serial));
   serial[sizeof(serial)-1] = '\0';
   if (*serial != '\0') {
     report(RPT_INFO, "%s: using serial number: %s", drvthis->name, serial);
   }
 
   /* Which size */
-  strncpy(size, drvthis->config_get_string(drvthis->name, "Size",
-                                           0, DEFAULT_SIZE), sizeof(size));
+  strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
   size[sizeof(size) - 1] = '\0';
   if ((sscanf(size, "%dx%d", &w, &h) != 2) ||
       (w <= 0) || (w > LCD_MAX_WIDTH) ||
@@ -290,8 +288,8 @@ IOWarrior_init(Driver *drvthis)
   p->height = h;
 
   /* special options for displays with some incompatibilities */
-  p->lastline = drvthis->config_get_bool(drvthis->name, "lastline", 0, 1);
-  p->ext_mode = drvthis->config_get_bool(drvthis->name, "extendedmode", 0, 0);
+  p->lastline = drvthis->config_get_bool(drvthis, "lastline", 1);
+  p->ext_mode = drvthis->config_get_bool(drvthis, "extendedmode", 0);
 
   /* Contrast of the LCD can be changed by adjusting a trimpot */
 

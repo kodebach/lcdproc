@@ -170,7 +170,7 @@ hd_init_i2c_piplate(Driver *drvthis)
 #endif
 
 	/* Get serial device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device) - 1] = '\0';
 	report(RPT_INFO, "HD44780: piplate: Using device '%s' and address 0x%02X for a MCP23017",
 	       device, p->port & I2C_ADDR_MASK);

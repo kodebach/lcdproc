@@ -249,14 +249,14 @@ sed1520_init(Driver * drvthis)
 	return -1;
 
     /* What port to use */
-    p->port = drvthis->config_get_int(drvthis->name, "Port", 0, DEFAULT_PORT);
+    p->port = drvthis->config_get_long(drvthis, "port", DEFAULT_PORT);
 
     /* Initialize timing */
     if (timing_init() == -1) {
 	report(RPT_ERR, "%s: timing_init() failed (%s)", drvthis->name, strerror(errno));
 	return -1;
     }
-    p->delayMult = drvthis->config_get_int(drvthis->name, "delaymult", 0, 1);
+    p->delayMult = drvthis->config_get_long(drvthis, "delaymult", 1);
     if (p->delayMult < 0 || p->delayMult > 1000) {
 	report(RPT_WARNING, "%s: DelayMult value invalid, using default (1)", drvthis->name);
 	p->delayMult = 1;
@@ -281,7 +281,7 @@ sed1520_init(Driver * drvthis)
     }
 
     /* Get interface style (68-family or 80-family) */
-    p->interface = drvthis->config_get_int(drvthis->name, "InterfaceType", 0, 80);
+    p->interface = drvthis->config_get_long(drvthis, "interfacetype", 80);
     if (p->interface != 68 && p->interface != 80) {
 	report(RPT_WARNING, "%s: Invalid interface configured, using type 80", drvthis->name);
 	p->interface = 80;
@@ -291,20 +291,20 @@ sed1520_init(Driver * drvthis)
      * The original wiring used an inverter to drive the control lines. As
      * someone may still be using this, the following setting in ON by default.
      */
-    p->haveInverter = drvthis->config_get_bool(drvthis->name, "HaveInverter", 0, 1);
+    p->haveInverter = drvthis->config_get_bool(drvthis, "haveinverter", 1);
 
     /*
      * Inverted Mapping: Segments are addressed from right to left and start
      * at column 19 (address 0x13) up to column 79 (address 0x4F).
      */
-    inverted = drvthis->config_get_bool(drvthis->name, "InvertedMapping", 0, 0);
+    inverted = drvthis->config_get_bool(drvthis, "invertedmapping", 0);
     if (inverted)
 	p->colStartAdd = 0x13;
     else
 	p->colStartAdd = 0;
 
     /* Initialize display */
-    if (drvthis->config_get_bool(drvthis->name, "UseHardReset", 0, 0) == 1) {
+    if (drvthis->config_get_bool(drvthis, "usehardreset", 0) == 1) {
 	writedata(p, 0xFF, CS1 + CS2);
 	writedata(p, 0xFF, CS1 + CS2);
 	writedata(p, 0xFF, CS1 + CS2);

@@ -77,13 +77,12 @@ sli_init (Driver *drvthis)
 	/* Read config file */
 
 	/* What device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0,
-						   SLI_DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", SLI_DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
 	/* What speed to use */
-	p->speed = drvthis->config_get_int(drvthis->name, "Speed", 0, 19200);
+	p->speed = drvthis->config_get_long(drvthis, "speed", 19200);
 
 	if (p->speed == 1200)        p->speed = B1200;
 	else if (p->speed == 2400)   p->speed = B2400;

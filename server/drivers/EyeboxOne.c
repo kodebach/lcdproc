@@ -107,12 +107,13 @@ static char
 EyeboxOne_parse_keypad_setting (Driver *drvthis, char * keyname, char default_value)
 {
 	char return_val = 0;
-	const char *s;
+	char *s;
 	char buf[255];
 
-	s = drvthis->config_get_string(drvthis->name, keyname, 0, NULL);
+	s = drvthis->config_get_string(drvthis, keyname, NULL);
 	if (s != NULL) {
 		strncpy(buf, s, sizeof(buf));
+		free(s);
 		buf[sizeof(buf)-1] = '\0';
 		return_val = buf[0];
 	} else {
@@ -172,12 +173,12 @@ EyeboxOne_init (Driver *drvthis)
 	/* READ CONFIG FILE */
 
 	/* Get serial device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, device);
 
 	/* Get display size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 			|| (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -191,7 +192,7 @@ EyeboxOne_init (Driver *drvthis)
 	p->widthBYheight = w * h;
 
 	/* Get speed */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	switch (tmp) {
 		case 1200:
 			speed = B1200;
@@ -212,16 +213,16 @@ EyeboxOne_init (Driver *drvthis)
 	}
 
 	/* Get backlight setting*/
-	p->backlightenabled = drvthis->config_get_bool(drvthis->name, "Backlight", 0, DEFAULT_BACKLIGHT);
+	p->backlightenabled = drvthis->config_get_bool(drvthis, "backlight", DEFAULT_BACKLIGHT);
 
 	/* Get backlight setting*/
-	p->cursorenabled = drvthis->config_get_bool(drvthis->name, "Cursor", 0, DEFAULT_CURSOR);
+	p->cursorenabled = drvthis->config_get_bool(drvthis, "cursor", DEFAULT_CURSOR);
 
 
 	/* Get keypad settings*/
 
 	/* keypad test mode? */
-	if (drvthis->config_get_bool(drvthis->name, "keypad_test_mode", 0, 0)) {
+	if (drvthis->config_get_bool(drvthis, "keypad_test_mode", 0)) {
 		fprintf(stdout, "EyeBO: Entering keypad test mode...\n");
 		p->keypad_test_mode = 1;
 		stay_in_foreground = 1;

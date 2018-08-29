@@ -96,12 +96,12 @@ tyan_lcdm_init (Driver *drvthis, char *args)
 
 	/* Read config file */
 	/* Which serial device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	debug(RPT_INFO,"%s: using Device %s", drvthis->name, p->device);
 
 	/* Which size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size , "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -114,7 +114,7 @@ tyan_lcdm_init (Driver *drvthis, char *args)
 	p->height = h;
 
 	/* Which speed */
-	tmp = drvthis->config_get_int(drvthis->name , "Speed", 0, DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	if (tmp == 4800) p->speed = B4800;
 	else if (tmp == 9600) p->speed = B9600;
 	else {

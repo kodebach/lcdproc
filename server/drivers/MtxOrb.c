@@ -252,12 +252,12 @@ MtxOrb_init (Driver *drvthis)
 	/* READ CONFIG FILE */
 
 	/* Get serial device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, device);
 
 	/* Get display size */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, DEFAULT_SIZE), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
 	    || (w <= 0) || (w > LCD_MAX_WIDTH)
@@ -270,7 +270,7 @@ MtxOrb_init (Driver *drvthis)
 	p->height = h;
 
 	/* Get contrast */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", DEFAULT_CONTRAST);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Contrast must be between 0 and 1000; using default %d",
 				drvthis->name, DEFAULT_CONTRAST);
@@ -279,12 +279,12 @@ MtxOrb_init (Driver *drvthis)
 	p->contrast = tmp;
 
 	/* Does it have an adjustable backlight */
-	tmp = drvthis->config_get_bool(drvthis->name, "hasAdjustableBacklight", 0, DEFAULT_ADJ_BACKLIGHT);
+	tmp = drvthis->config_get_bool(drvthis, "hasadjustablebacklight", DEFAULT_ADJ_BACKLIGHT);
 	debug(RPT_INFO, "%s: hasAdjustableBacklight is '%d'", __FUNCTION__, tmp);
 	p->adjustable_backlight = tmp;
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	debug(RPT_INFO, "%s: Brightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
@@ -294,7 +294,7 @@ MtxOrb_init (Driver *drvthis)
 	p->brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
@@ -304,7 +304,7 @@ MtxOrb_init (Driver *drvthis)
 	p->offbrightness = tmp;
 
 	/* Get speed */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	switch (tmp) {
 		case 1200:
 			speed = B1200;
@@ -325,7 +325,7 @@ MtxOrb_init (Driver *drvthis)
 	}
 
 	/* Get display type */
-	strncpy(buf, drvthis->config_get_string(drvthis->name, "Type", 0, DEFAULT_TYPE), sizeof(buf));
+	strncpy(buf, drvthis->config_get_string(drvthis, "type", DEFAULT_TYPE), sizeof(buf));
 	buf[sizeof(buf)-1] = '\0';
 	if (strncasecmp(buf, "lcd", 3) == 0) {
 		p->MtxOrb_type = MTXORB_LCD;
@@ -344,7 +344,7 @@ MtxOrb_init (Driver *drvthis)
 	/* Get keypad settings */
 
 	/* keypad test mode? */
-	if (drvthis->config_get_bool(drvthis->name, "keypad_test_mode", 0, 0)) {
+	if (drvthis->config_get_bool(drvthis, "keypad_test_mode", 0)) {
 		fprintf(stdout, "MtxOrb: Entering keypad test mode...\n");
 		p->keypad_test_mode = 1;
 		stay_in_foreground = 1;
@@ -370,7 +370,7 @@ MtxOrb_init (Driver *drvthis)
 
 			/* Read config value */
 			sprintf(buf, "KeyMap_%c", i+'A');
-			s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
+			s = drvthis->config_get_string(drvthis, buf, NULL);
 
 			/* Was a key specified in the config file ? */
 			if (s != NULL) {

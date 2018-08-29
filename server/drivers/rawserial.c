@@ -103,7 +103,7 @@ rawserial_init(Driver *drvthis)
 		return -1;
 
 	/* initialize private data */
-	tmpf = drvthis->config_get_float(drvthis->name, "UpdateRate", 0, DEFAULT_UPDATE_RATE);
+	tmpf = drvthis->config_get_double(drvthis, "updaterate", DEFAULT_UPDATE_RATE);
 	if (tmpf < 0.0005 || tmpf > 10) {
 		report(RPT_WARNING, "%s: UpdateRate out of range; using default %g",
 		       drvthis->name, DEFAULT_UPDATE_RATE);
@@ -117,7 +117,7 @@ rawserial_init(Driver *drvthis)
 	       p->refresh_time, p->refresh_delta);
 
 	/* Which speed */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, DEFAULT_SPEED);
+	tmp = drvthis->config_get_long(drvthis, "speed", DEFAULT_SPEED);
 	switch (tmp) {
 	case 1200:
 		speed = B1200;
@@ -142,7 +142,7 @@ rawserial_init(Driver *drvthis)
 	}
 
 	/* which serial device should be used */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE),
+	strncpy(device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE),
 		sizeof(device));
 	device[sizeof(device) - 1] = '\0';
 	report(RPT_INFO, "%s: using Device %s at baud rate: %d (configured = %d)",
@@ -158,7 +158,7 @@ rawserial_init(Driver *drvthis)
 	else {
 		/* Use our own size from config file */
 		strncpy(buf,
-			drvthis->config_get_string(drvthis->name, "Size", 0, DISPLAY_DEFAULT_SIZE),
+			drvthis->config_get_string(drvthis, "size", DISPLAY_DEFAULT_SIZE),
 			sizeof(buf));
 		buf[sizeof(buf) - 1] = '\0';
 		if ((sscanf(buf, "%dx%d", &p->width, &p->height) != 2)

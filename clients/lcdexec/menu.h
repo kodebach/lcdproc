@@ -50,6 +50,7 @@ typedef struct menu_entry {
 	struct menu_entry *parent;	/**< Parent menu entry. */
 	int numChildren;		/**< # of child entries. */
 	struct menu_entry *children;	/**< Subordinate menu entries (for type \c MT_MENU & \c MT_EXEC). */
+	struct menu_entry *lastChild; // TODO (kodebach): document
 	struct menu_entry *next;	/**< Next sibling menu entry (for type \c MT_MENU). */
 
 	// Variables specific to one special type

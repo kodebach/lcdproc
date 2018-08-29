@@ -548,7 +548,7 @@ ula200_init(Driver *drvthis)
 {
 	PrivateData *p;
 	int err, i;
-	const char *s;
+	char *s;
 
 	/* Allocate and store private data */
 	p = (PrivateData *) malloc(sizeof(PrivateData));
@@ -564,7 +564,7 @@ ula200_init(Driver *drvthis)
 	EmptyKeyRing(&p->keyring);
 
 	/* Get and parse size */
-	s = drvthis->config_get_string(drvthis->name, "size", 0, "20x4");
+	s = drvthis->config_get_string(drvthis, "size", "20x4");
 	if ((sscanf(s, "%dx%d", &(p->width), &(p->height)) != 2)
 	    || (p->width <= 0) || (p->width > LCD_MAX_WIDTH)
 	    || (p->height <= 0) || (p->height > LCD_MAX_HEIGHT)) {
@@ -581,11 +581,11 @@ ula200_init(Driver *drvthis)
 
 		/* Read config value */
 		sprintf(buf, "KeyMap_%c", i + 'A');
-		s = drvthis->config_get_string(drvthis->name, buf, 0, NULL);
+		s = drvthis->config_get_string(drvthis, buf, NULL);
 
 		/* Was a key specified in the config file ? */
 		if (s != NULL) {
-			p->key_map[i] = strdup(s);
+			p->key_map[i] = s;
 			report(RPT_INFO, "%s: Key '%c' mapped to \"%s\"",
 			       drvthis->name, i + 'A', s);
 		}

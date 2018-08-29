@@ -88,7 +88,7 @@ glcd_t6963_init(Driver *drvthis)
 	memset(ct_data->backingstore, 0x00, p->framebuf.size);
 
 	/* Get port from config */
-	port_config->port = drvthis->config_get_int(drvthis->name, "Port", 0, DEFAULT_PORT);
+	port_config->port = drvthis->config_get_long(drvthis, "port", DEFAULT_PORT);
 	if ((port_config->port < 0x200) || (port_config->port > 0x400)) {
 		port_config->port = DEFAULT_PORT;
 		report(RPT_WARNING, "GLCD/T6963: Port value must be between 0x200 and 0x400. Using default 0x%03X",
@@ -96,9 +96,9 @@ glcd_t6963_init(Driver *drvthis)
 	}
 
 	/* Use bi-directional mode of LPT port? Default: yes */
-	port_config->bidirectLPT = drvthis->config_get_bool(drvthis->name, "bidirectional", 0, 1);
+	port_config->bidirectLPT = drvthis->config_get_bool(drvthis, "bidirectional", 1);
 	/* Additional delay necessary? Default: no */
-	port_config->delayBus = drvthis->config_get_bool(drvthis->name, "delayBus", 0, 0);
+	port_config->delayBus = drvthis->config_get_bool(drvthis, "delaybus", 0);
 
 	/* Now initialize port */
 	if (t6963_low_init(port_config) == -1) {

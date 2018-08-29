@@ -152,7 +152,7 @@ CFontzPacket_init (Driver *drvthis)
 	/* Read config file */
 
 	/* Try to find a matching model from our list of known modules */
-	tmp = drvthis->config_get_int(drvthis->name, "Model", 0, 633);
+	tmp = drvthis->config_get_long(drvthis, "model", 633);
 	debug(RPT_INFO, "%s: Model (in config) is '%d'", __FUNCTION__, tmp);
 	i = 0;
 	while ((CFA_ModelList[i].model != 0) && (CFA_ModelList[i].model != tmp)) {
@@ -168,12 +168,12 @@ CFontzPacket_init (Driver *drvthis)
 	debug(RPT_INFO, "%s: Flags are 0x%04X", __FUNCTION__, p->model_desc->flags);
 
 	/* Which device should be used */
-	strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0, DEFAULT_DEVICE), sizeof(p->device));
+	strncpy(p->device, drvthis->config_get_string(drvthis, "device", DEFAULT_DEVICE), sizeof(p->device));
 	p->device[sizeof(p->device)-1] = '\0';
 	report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
 	/* Size setting */
-	strncpy(size, drvthis->config_get_string(drvthis->name, "Size", 0, p->model_desc->size), sizeof(size));
+	strncpy(size, drvthis->config_get_string(drvthis, "size", p->model_desc->size), sizeof(size));
 	size[sizeof(size)-1] = '\0';
 	debug(RPT_INFO, "%s: Size (in config) is '%s'", __FUNCTION__, size);
 	if ((sscanf(size, "%dx%d", &w, &h) != 2)
@@ -191,7 +191,7 @@ CFontzPacket_init (Driver *drvthis)
 	p->cellwidth = p->model_desc->cell_width;
 
 	/* Which contrast */
-	tmp = drvthis->config_get_int(drvthis->name, "Contrast", 0, DEFAULT_CONTRAST);
+	tmp = drvthis->config_get_long(drvthis, "contrast", DEFAULT_CONTRAST);
 	debug(RPT_INFO, "%s: Contrast (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Contrast must be between 0 and 1000; using default %d",
@@ -201,7 +201,7 @@ CFontzPacket_init (Driver *drvthis)
 	p->contrast = tmp;
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	debug(RPT_INFO, "%s: Brightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
@@ -211,7 +211,7 @@ CFontzPacket_init (Driver *drvthis)
 	p->brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000; using default %d",
@@ -221,7 +221,7 @@ CFontzPacket_init (Driver *drvthis)
 	p->offbrightness = tmp;
 
 	/* Get speed setting. */
-	tmp = drvthis->config_get_int(drvthis->name, "Speed", 0, p->model_desc->speed);
+	tmp = drvthis->config_get_long(drvthis, "speed", p->model_desc->speed);
 	debug(RPT_INFO, "%s: Speed (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp != 19200) && (tmp != 115200)) {
 		report(RPT_WARNING, "%s: Speed must be 19200 or 115200; using default %d",
@@ -231,13 +231,13 @@ CFontzPacket_init (Driver *drvthis)
 	p->speed = (tmp == 19200) ? B19200 : B115200;
 
 	/* Does the display has an old firmware (<= 0.6)? */
-	p->oldfirmware = drvthis->config_get_bool(drvthis->name, "OldFirmware", 0, 0);
+	p->oldfirmware = drvthis->config_get_bool(drvthis, "oldfirmware", 0);
 
 	/* Reboot display? */
-	cf_reboot = drvthis->config_get_bool(drvthis->name, "Reboot", 0, 0);
+	cf_reboot = drvthis->config_get_bool(drvthis, "reboot", 0);
 
 	/* Am I USB or not? */
-	p->usb = drvthis->config_get_bool(drvthis->name, "USB", 0, 0);
+	p->usb = drvthis->config_get_bool(drvthis, "usb", 0);
 	if (p->usb)
 		report(RPT_INFO, "%s: USB is indicated (in config)", drvthis->name);
 

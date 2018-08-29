@@ -146,15 +146,15 @@ hd_init_i2c(Driver *drvthis)
 	HD44780_functions *hd44780_functions = p->hd44780_functions;
 	char device[256] = I2C_DEFAULT_DEVICE;
 
-	p->i2c_backlight_invert = drvthis->config_get_bool(drvthis->name, "BacklightInvert", 0, BL_INVERT);
-	p->i2c_line_RS = drvthis->config_get_int(drvthis->name, "i2c_line_RS", 0, RS);
-	p->i2c_line_RW = drvthis->config_get_int(drvthis->name, "i2c_line_RW", 0, RW);
-	p->i2c_line_EN = drvthis->config_get_int(drvthis->name, "i2c_line_EN", 0, EN);
-	p->i2c_line_BL = drvthis->config_get_int(drvthis->name, "i2c_line_BL", 0, BL);
-	p->i2c_line_D4 = drvthis->config_get_int(drvthis->name, "i2c_line_D4", 0, D4);
-	p->i2c_line_D5 = drvthis->config_get_int(drvthis->name, "i2c_line_D5", 0, D5);
-	p->i2c_line_D6 = drvthis->config_get_int(drvthis->name, "i2c_line_D6", 0, D6);
-	p->i2c_line_D7 = drvthis->config_get_int(drvthis->name, "i2c_line_D7", 0, D7);
+	p->i2c_backlight_invert = drvthis->config_get_bool(drvthis, "backlightinvert", BL_INVERT);
+	p->i2c_line_RS = drvthis->config_get_long(drvthis, "i2c_line_rs", RS);
+	p->i2c_line_RW = drvthis->config_get_long(drvthis, "i2c_line_rw", RW);
+	p->i2c_line_EN = drvthis->config_get_long(drvthis, "i2c_line_en", EN);
+	p->i2c_line_BL = drvthis->config_get_long(drvthis, "i2c_line_bl", BL);
+	p->i2c_line_D4 = drvthis->config_get_long(drvthis, "i2c_line_d4", D4);
+	p->i2c_line_D5 = drvthis->config_get_long(drvthis, "i2c_line_d5", D5);
+	p->i2c_line_D6 = drvthis->config_get_long(drvthis, "i2c_line_d6", D6);
+	p->i2c_line_D7 = drvthis->config_get_long(drvthis, "i2c_line_d7", D7);
 
 	report(RPT_INFO, "HD44780: I2C: Init using D4 and D5, and or'd lines, invert", p->i2c_line_RS);
 	report(RPT_INFO, "HD44780: I2C: Pin RS mapped to 0x%02X", p->i2c_line_RS);
@@ -172,7 +172,7 @@ hd_init_i2c(Driver *drvthis)
 	/* READ CONFIG FILE */
 
 	/* Get serial device to use */
-	strncpy(device, drvthis->config_get_string(drvthis->name, "Device", 0, I2C_DEFAULT_DEVICE), sizeof(device));
+	strncpy(device, drvthis->config_get_string(drvthis, "device", I2C_DEFAULT_DEVICE), sizeof(device));
 	device[sizeof(device)-1] = '\0';
 	report(RPT_INFO,"HD44780: I2C: Using device '%s' and address 0x%02X for a %s",
 		device, p->port & I2C_ADDR_MASK, (p->port & I2C_PCAX_MASK) ? "PCA9554(A)" : "PCF8574(A)");

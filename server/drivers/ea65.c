@@ -97,7 +97,7 @@ EA65_init (Driver *drvthis)
 
         //// Read config file
         // Which backlight brightness
-        p->brightness = drvthis->config_get_int ( drvthis->name , "Brightness" , 0 , DEFAULT_BRIGHTNESS);
+        p->brightness = drvthis->config_get_long (drvthis, "brightness", DEFAULT_BRIGHTNESS);
         if (0 <= p->brightness && p->brightness <= 1000) {
                 if (p->brightness < 300) {
                         p->brightness = 0x00;           // command char that turns button LEDs off
@@ -113,7 +113,7 @@ EA65_init (Driver *drvthis)
         }
 
         // Which backlight-off "brightness"
-        p->offbrightness = drvthis->config_get_int ( drvthis->name , "OffBrightness" , 0 , DEFAULT_OFFBRIGHTNESS);
+        p->offbrightness = drvthis->config_get_long (drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
         if (0 <= p->offbrightness && p->offbrightness <= 1000) {
                 if (p->offbrightness < 300) {
                         p->offbrightness = 0x00;           // command char that turns button LEDs off

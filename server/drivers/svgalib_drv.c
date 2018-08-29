@@ -252,8 +252,7 @@ svga_init (Driver *drvthis)
 		int w;
 		int h;
 
-		strncpy(size, drvthis->config_get_string(drvthis->name, "Size",
-							 0, DEFAULT_SIZE), sizeof(size));
+		strncpy(size, drvthis->config_get_string(drvthis, "size", DEFAULT_SIZE), sizeof(size));
 		size[sizeof(size) - 1] = '\0';
 		debug(RPT_INFO, "%s: Size (in config) is '%s'", __FUNCTION__, size);
 		if ((sscanf(size, "%dx%d", &w, &h) != 2) ||
@@ -279,7 +278,7 @@ svga_init (Driver *drvthis)
 	report(RPT_INFO, "%s: using Size %dx%d", drvthis->name, p->width, p->height);
 
 	/* Which backlight brightness */
-	tmp = drvthis->config_get_int(drvthis->name, "Brightness", 0, DEFAULT_BRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "brightness", DEFAULT_BRIGHTNESS);
 	debug(RPT_INFO, "%s: Brightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: Brightness must be between 0 and 1000; using default %d",
@@ -289,7 +288,7 @@ svga_init (Driver *drvthis)
 	p->brightness = tmp;
 
 	/* Which backlight-off "brightness" */
-	tmp = drvthis->config_get_int(drvthis->name, "OffBrightness", 0, DEFAULT_OFFBRIGHTNESS);
+	tmp = drvthis->config_get_long(drvthis, "offbrightness", DEFAULT_OFFBRIGHTNESS);
 	debug(RPT_INFO, "%s: OffBrightness (in config) is '%d'", __FUNCTION__, tmp);
 	if ((tmp < 0) || (tmp > 1000)) {
 		report(RPT_WARNING, "%s: OffBrightness must be between 0 and 1000. Using default %d",
@@ -299,8 +298,7 @@ svga_init (Driver *drvthis)
 	p->offbrightness = tmp;
 
 	/* which mode */
-	strncpy(modestr, drvthis->config_get_string(drvthis->name, "Mode",
-						    0, DEFAULT_MODESTR), sizeof(modestr));
+	strncpy(modestr, drvthis->config_get_string(drvthis, "mode", DEFAULT_MODESTR), sizeof(modestr));
 	modestr[sizeof(modestr) - 1] = '\0';
 	debug(RPT_INFO, "%s: Mode (in config) is '%s'", __FUNCTION__, modestr);
 

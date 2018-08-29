@@ -95,13 +95,12 @@ LB216_init(Driver *drvthis)
   /* Read config file */
 
   /* What device should be used */
-  strncpy(p->device, drvthis->config_get_string(drvthis->name, "Device", 0,
-					     LB216_DEFAULT_DEVICE), sizeof(p->device));
+  strncpy(p->device, drvthis->config_get_string(drvthis, "device", LB216_DEFAULT_DEVICE), sizeof(p->device));
   p->device[sizeof(p->device)-1] = '\0';
   report(RPT_INFO, "%s: using Device %s", drvthis->name, p->device);
 
   /* What speed to use */
-  p->speed = drvthis->config_get_int(drvthis->name, "Speed", 0, LB216_DEFAULT_SPEED);
+  p->speed = drvthis->config_get_long(drvthis, "speed", LB216_DEFAULT_SPEED);
 
   if (p->speed == 2400)       p->speed = B2400;
   else if (p->speed == 9600)  p->speed = B9600;
@@ -112,7 +111,7 @@ LB216_init(Driver *drvthis)
   }
 
   /* Which backlight brightness */
-  p->backlight_brightness = drvthis->config_get_int(drvthis->name, "Brightness", 0, LB216_DEFAULT_BRIGHTNESS);
+  p->backlight_brightness = drvthis->config_get_long(drvthis, "brightness", LB216_DEFAULT_BRIGHTNESS);
   if ((p->backlight_brightness < 0) || (p->backlight_brightness > 255)) {
     report(RPT_WARNING, "%s: Brightness must be between 0 and 255; using default %d",
 		    drvthis->name, LB216_DEFAULT_BRIGHTNESS);
@@ -120,7 +119,7 @@ LB216_init(Driver *drvthis)
   }
 
   /* Reboot display? */
-  reboot = drvthis->config_get_bool(drvthis->name , "Reboot", 0, 0);
+  reboot = drvthis->config_get_bool(drvthis, "reboot", 0);
 
   /* End of config file parsing */
 

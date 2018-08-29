@@ -25,13 +25,15 @@
 #include "main.h" /* for timer  */
 
 #include "shared/report.h"
-#include "shared/configfile.h"
+#include "shared/elektraconfig.h"
 
 #include "widget.h"
 #include "driver.h"
 #include "drivers.h"
 #include "drivers/lcd.h"
 /* lcd.h is used for the driver API definition */
+
+#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 
 /** property / method symbols in a Driver structure */
@@ -200,6 +202,65 @@ driver_unload(Driver *driver)
 	return 0;
 }
 
+bool 
+config_get_bool(Driver* driver, const char* keyname, bool default_value)
+{
+	Key* key = keyDup(driver->config_base_key);
+	keyAddName(key, keyname);
+	bool value = econfig_get_bool(driver->config, keyName(key), default_value);
+	keyDel(key);
+	return value;
+}
+
+long int
+config_get_long(Driver* driver, const char *keyname, long int default_value)
+{
+	Key* key = keyDup(driver->config_base_key);
+	keyAddName(key, keyname);	
+	long int value = econfig_get_long(driver->config, keyName(key), default_value);
+	keyDel(key);
+	return value;
+}
+
+double
+config_get_double(Driver* driver, const char *keyname, double default_value)
+{
+	Key* key = keyDup(driver->config_base_key);
+	keyAddName(key, keyname);	
+	double value = econfig_get_double(driver->config, keyName(key), default_value);
+	keyDel(key);
+	return value;
+}
+
+char*
+config_get_string(Driver* driver, const char *keyname, char *default_value)
+{
+	Key* key = keyDup(driver->config_base_key);
+	keyAddName(key, keyname);
+	char* value = econfig_get_string(driver->config, keyName(key), default_value);
+	keyDel(key);
+	return value;
+}
+
+long int
+config_get_enum(Driver* driver, const char* keyname, const int default_value, const long int enum_size, const char** enum_values)
+{
+	Key* key = keyDup(driver->config_base_key);
+	keyAddName(key, keyname);
+	long int value = econfig_get_enum(driver->config, keyName(key), default_value, enum_size, enum_values);
+	keyDel(key);
+	return value;
+}
+
+bool
+config_exists(Driver* driver, const char *keyname)
+{
+	Key* key = keyDup(driver->config_base_key);
+	keyAddName(key, keyname);
+	bool value = econfig_exists(driver->config, keyName(key));
+	keyDel(key);
+	return value;
+}
 
 /** Dynamically load a module and bind it to the Driver's symbols.
  * \param driver  Pointer to the Driver object.
@@ -268,12 +329,16 @@ driver_bind_module(Driver *driver)
 	/* Add our exported functions */
 
 	/* Config file functions */
+	Key* baseKey = keyNew(CONFIG_BASE_KEY"/driver");
+	keyAddBaseName(baseKey, driver->name);
+	driver->config_base_key = baseKey;
+
 	driver->config_get_bool		= config_get_bool;
-	driver->config_get_int		= config_get_int;
-	driver->config_get_float	= config_get_float;
+	driver->config_get_long		= config_get_long;
+	driver->config_get_double	= config_get_double;
 	driver->config_get_string	= config_get_string;
-	driver->config_has_section	= config_has_section;
-	driver->config_has_key		= config_has_key;
+	driver->config_get_enum 	= config_get_enum;
+	driver->config_exists		= config_exists;
 
 	/* Driver private data */
 	driver->store_private_ptr	= driver_store_private_ptr;
@@ -297,6 +362,9 @@ driver_unbind_module(Driver *driver)
 	debug(RPT_DEBUG, "%s(driver=[%.40s])", __FUNCTION__, driver->name);
 
 	dlclose(driver->module_handle);
+
+	keyDel(driver->config_base_key);
+	econfig_close(driver->config);
 
 	return 0;
 }
