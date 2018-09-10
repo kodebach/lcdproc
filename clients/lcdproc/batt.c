@@ -101,7 +101,7 @@ battery_status(int status)
  * \return  Always 0
  */
 int
-battery_screen(int rep, int display, int *flags_ptr, KeySet* config)
+battery_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	int acstat = 0, battstat = 0, percent = 0;
 	int gauge_wid = lcd_wid - 2;

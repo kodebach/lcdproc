@@ -297,7 +297,7 @@ static int process_configfile(char *configfile)
 		return -1;
 	}
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY);
+	Config* config = econfig_open(CONFIG_BASE_KEY);
 
 	if (address == NULL) {
 		address = econfig_get_string(config, CONFIG_BASE_KEY"/general/address", "localhost");

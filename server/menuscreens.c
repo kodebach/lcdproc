@@ -84,7 +84,7 @@ menuscreens_init(void)
 
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY"/menu");
+	Config* config = econfig_open(CONFIG_BASE_KEY"/menu");
 	if (config == NULL) {
 		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
 		return -1;

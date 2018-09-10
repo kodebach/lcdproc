@@ -51,7 +51,7 @@
  * \return  Always 0
  */
 int
-cpu_smp_screen (int rep, int display, int *flags_ptr, KeySet* config)
+cpu_smp_screen (int rep, int display, int *flags_ptr, Config* config)
 {
 #undef CPU_BUF_SIZE
 #define CPU_BUF_SIZE 4

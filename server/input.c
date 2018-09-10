@@ -51,18 +51,18 @@ int input_init(void)
 
 	keylist = LL_new();
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	Config* config = econfig_open(CONFIG_BASE_KEY"/server");
 	if (config == NULL) {
 		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
 		return -1;
 	}
 
 	/* Get rotate/scroll keys from config file */
-	toggle_rotate_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/togglerotatekey", "Enter");
-	prev_screen_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/prevscreenkey", "Left");
-	next_screen_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/nextscreenkey", "Right");
-	scroll_up_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/scrollupkey", "Up");
-	scroll_down_key = econfig_get_string(config, CONFIG_BASE_KEY"/general/dcrolldownkey", "Down");
+	toggle_rotate_key = econfig_get_string(config, CONFIG_BASE_KEY"/server/togglerotatekey", "Enter");
+	prev_screen_key = econfig_get_string(config, CONFIG_BASE_KEY"/server/prevscreenkey", "Left");
+	next_screen_key = econfig_get_string(config, CONFIG_BASE_KEY"/server/nextscreenkey", "Right");
+	scroll_up_key = econfig_get_string(config, CONFIG_BASE_KEY"/server/scrollupkey", "Up");
+	scroll_down_key = econfig_get_string(config, CONFIG_BASE_KEY"/server/dcrolldownkey", "Down");
 
 	econfig_close(config);
 

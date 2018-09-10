@@ -68,7 +68,7 @@ static char *tickTime(char *time, int heartbeat);
  * \return  Always 0
  */
 int
-time_screen(int rep, int display, int *flags_ptr, KeySet* config)
+time_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	char now[40];
 	char today[40];
@@ -188,7 +188,7 @@ time_screen(int rep, int display, int *flags_ptr, KeySet* config)
  * \return  Always 0
  */
 int
-clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
+clock_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	char now[40];
 	char today[40];
@@ -299,7 +299,7 @@ clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
  * \return  Always 0
  */
 int
-uptime_screen(int rep, int display, int *flags_ptr, KeySet* config)
+uptime_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	int xoffs;
 	int days, hour, min, sec;
@@ -391,7 +391,7 @@ uptime_screen(int rep, int display, int *flags_ptr, KeySet* config)
  * \return  Always 0
  */
 int
-big_clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
+big_clock_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	time_t thetime;
 	struct tm *rtime;
@@ -482,7 +482,7 @@ big_clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
  * \return  Always 0
  */
 int
-mini_clock_screen(int rep, int display, int *flags_ptr, KeySet* config)
+mini_clock_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	char now[40];
 	time_t thetime;

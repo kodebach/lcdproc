@@ -62,7 +62,7 @@ drivers_load_driver(const char *name)
 		}
 	}
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY);
+	Config* config = econfig_open(CONFIG_BASE_KEY);
 	if (config == NULL) {
 		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
 		return -1;
@@ -72,7 +72,7 @@ drivers_load_driver(const char *name)
 	driverpath = econfig_get_string(config, CONFIG_BASE_KEY"general/driverpath", "");
 
 	static const char* fileKey = "file";
-	char* keyName = malloc(strlen(CONFIG_BASE_KEY) + 1 + strlen(name) + 1 + strlen(fileKey) + 1); // baseKey + / + name + / + fileKey + \0
+	char* keyName = malloc(strlen(CONFIG_BASE_KEY"/driver") + 1 + strlen(name) + 1 + strlen(fileKey) + 1); // baseKey + / + name + / + fileKey + \0
 	strcpy(keyName, CONFIG_BASE_KEY);
 	strcat(keyName, "/");
 	strcat(keyName, name);

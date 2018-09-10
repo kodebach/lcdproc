@@ -33,15 +33,12 @@ static const char* paramTypes[] = {"slider", "ring", "numeric", "alpha", "ip", "
 
 static int id = 0;
 
-int entry_read_callback(KeySet* config, size_t index, Key* element, void* userdata);
-int param_read_callback(KeySet* config, size_t index, Key* element, void* userdata);
-
-MenuEntry* param_read(KeySet* config, const char* element);
-MenuEntry* command_read(KeySet* config, const char* element);
-MenuEntry* menu_read(KeySet* config, const char* element);
+MenuEntry* param_read(Config* config, const char* element);
+MenuEntry* command_read(Config* config, const char* element);
+MenuEntry* menu_read(Config* config, const char* element);
 
 
-MenuEntry* param_read(KeySet* config, const char* paramName)
+MenuEntry* param_read(Config* config, const char* paramName)
 {
 	char* dupName = strdup(paramName);
 	char* type = strrchr(paramName, '/');
@@ -113,7 +110,7 @@ MenuEntry* param_read(KeySet* config, const char* paramName)
 			
 			strncpy(keyBaseNameEnd, "/string", 8);
 			size_t numStrings;
-			KeySet* stringsArray = econfig_array_start(config, keyName, &numStrings);
+			Config* stringsArray = econfig_array_start(config, keyName, &numStrings);
 			if(stringsArray == NULL) {
 				free(keyName);
 				param->data.ring.strings = calloc(1, sizeof(char *));
@@ -223,7 +220,7 @@ MenuEntry* param_read(KeySet* config, const char* paramName)
 	return param;
 }
 
-MenuEntry* command_read(KeySet* config, const char* commandName)
+MenuEntry* command_read(Config* config, const char* commandName)
 {
 	MenuEntry* command = calloc(1, sizeof(MenuEntry));
 	if (command == NULL) {
@@ -257,7 +254,7 @@ MenuEntry* command_read(KeySet* config, const char* commandName)
 	command->numChildren = 0;
 
 	strncpy(keyBaseNameEnd, "/param", 13);
-	KeySet* array = econfig_array_start(config, keyName, NULL);
+	Config* array = econfig_array_start(config, keyName, NULL);
 	free(keyName);
 
 	if(array != NULL) {
@@ -323,7 +320,7 @@ MenuEntry* command_read(KeySet* config, const char* commandName)
 	return command;
 }
 
-MenuEntry* menu_read(KeySet* config, const char* menuName)
+MenuEntry* menu_read(Config* config, const char* menuName)
 {
 	MenuEntry* menu = calloc(1, sizeof(MenuEntry));
 	if(menu == NULL) {
@@ -353,13 +350,13 @@ MenuEntry* menu_read(KeySet* config, const char* menuName)
 	return menu;
 }
 
-int menu_read_entries(KeySet* config, MenuEntry* menu, const char* menuName) {
+int menu_read_entries(Config* config, MenuEntry* menu, const char* menuName) {
 	// length of name, /, entry, /, elektra array key, \0
 	char* entryArrayName = calloc(strlen(menuName) + 1 + 5 + 1 + 20 + 1, sizeof(char));
 	strcpy(entryArrayName, menuName);
 	strcat(entryArrayName, "/entry");
 
-	KeySet* array = econfig_array_start(config, entryArrayName, NULL);
+	Config* array = econfig_array_start(config, entryArrayName, NULL);
 	free(entryArrayName);
 
 	if(array == NULL) {
@@ -400,7 +397,7 @@ int menu_read_entries(KeySet* config, MenuEntry* menu, const char* menuName) {
 	return 0;
 }
 
-MenuEntry* main_menu_read(KeySet* config, const char *name)
+MenuEntry* main_menu_read(Config* config, const char *name)
 {
 	id = 0; // reset id
 

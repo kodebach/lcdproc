@@ -61,7 +61,7 @@ mode_close(void)
  * \return  Backlight state
  */
 int
-update_screen(ScreenMode *m, int display, KeySet* config)
+update_screen(ScreenMode *m, int display, Config* config)
 {
 	static int status = -1;
 	int old_status = status;
@@ -103,7 +103,7 @@ update_screen(ScreenMode *m, int display, KeySet* config)
  * \return  Always 0
  */
 int
-credit_screen(int rep, int display, int *flags_ptr, KeySet* config)
+credit_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	/*
 	 * List of persons who contributed to LCDproc. Keep in sync with

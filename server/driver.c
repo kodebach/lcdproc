@@ -203,60 +203,72 @@ driver_unload(Driver *driver)
 bool 
 config_get_bool(Driver* driver, const char* keyname, bool default_value)
 {
-	Key* key = keyDup(driver->config_base_key);
-	keyAddName(key, keyname);
-	bool value = econfig_get_bool(driver->config, keyName(key), default_value);
-	keyDel(key);
+	char* key = calloc(strlen(driver->config_base_key) + 1 + strlen(keyname) + 1, sizeof(char));
+	strcpy(key, driver->config_base_key);
+	strcat(key, "/");
+	strcat(key, keyname);
+	bool value = econfig_get_bool(driver->config, key, default_value);
+	free(key);
 	return value;
 }
 
 long int
 config_get_long(Driver* driver, const char *keyname, long int default_value)
 {
-	Key* key = keyDup(driver->config_base_key);
-	keyAddName(key, keyname);	
+	const char* key = calloc(strlen(driver->config_base_key) + 1 + strlen(keyname) + 1, sizeof(char));
+	strcpy(key, driver->config_base_key);
+	strcat(key, "/");
+	strcat(key, keyname);
 	long int value = econfig_get_long(driver->config, keyName(key), default_value);
-	keyDel(key);
+	free(key);
 	return value;
 }
 
 double
 config_get_double(Driver* driver, const char *keyname, double default_value)
 {
-	Key* key = keyDup(driver->config_base_key);
-	keyAddName(key, keyname);	
+	const char* key = calloc(strlen(driver->config_base_key) + 1 + strlen(keyname) + 1, sizeof(char));
+	strcpy(key, driver->config_base_key);
+	strcat(key, "/");
+	strcat(key, keyname);
 	double value = econfig_get_double(driver->config, keyName(key), default_value);
-	keyDel(key);
+	free(key);
 	return value;
 }
 
 char*
 config_get_string(Driver* driver, const char *keyname, char *default_value)
 {
-	Key* key = keyDup(driver->config_base_key);
-	keyAddName(key, keyname);
+	const char* key = calloc(strlen(driver->config_base_key) + 1 + strlen(keyname) + 1, sizeof(char));
+	strcpy(key, driver->config_base_key);
+	strcat(key, "/");
+	strcat(key, keyname);
 	char* value = econfig_get_string(driver->config, keyName(key), default_value);
-	keyDel(key);
+	free(key);
 	return value;
 }
 
 long int
 config_get_enum(Driver* driver, const char* keyname, const int default_value, const long int enum_size, const char** enum_values)
 {
-	Key* key = keyDup(driver->config_base_key);
-	keyAddName(key, keyname);
+	const char* key = calloc(strlen(driver->config_base_key) + 1 + strlen(keyname) + 1, sizeof(char));
+	strcpy(key, driver->config_base_key);
+	strcat(key, "/");
+	strcat(key, keyname);
 	long int value = econfig_get_enum(driver->config, keyName(key), default_value, enum_size, enum_values);
-	keyDel(key);
+	free(key);
 	return value;
 }
 
 bool
 config_exists(Driver* driver, const char *keyname)
 {
-	Key* key = keyDup(driver->config_base_key);
-	keyAddName(key, keyname);
+	const char* key = calloc(strlen(driver->config_base_key) + 1 + strlen(keyname) + 1, sizeof(char));
+	strcpy(key, driver->config_base_key);
+	strcat(key, "/");
+	strcat(key, keyname);
 	bool value = econfig_exists(driver->config, keyName(key));
-	keyDel(key);
+	free(key);
 	return value;
 }
 
@@ -327,9 +339,9 @@ driver_bind_module(Driver *driver)
 	/* Add our exported functions */
 
 	/* Config file functions */
-	Key* baseKey = keyNew(CONFIG_BASE_KEY"/driver");
-	keyAddBaseName(baseKey, driver->name);
-	driver->config_base_key = baseKey;
+	driver->config_base_key = calloc(strlen(CONFIG_BASE_KEY"/driver") + 1 + strlen(driver->name) + 1, sizeof(char));
+	strcpy(driver->config_base_key, CONFIG_BASE_KEY"/driver/");
+	strcat(driver->config_base_key, driver->name);
 
 	driver->config_get_bool		= config_get_bool;
 	driver->config_get_long		= config_get_long;
@@ -361,7 +373,7 @@ driver_unbind_module(Driver *driver)
 
 	dlclose(driver->module_handle);
 
-	keyDel(driver->config_base_key);
+	free(driver->config_base_key);
 	econfig_close(driver->config);
 
 	return 0;

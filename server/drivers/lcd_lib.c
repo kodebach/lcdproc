@@ -79,3 +79,16 @@ lib_vbar_static (Driver *drvthis, int x, int y, int len, int promille, int optio
 		}
 	}
 }
+
+int config_array_index(char* dest, int index) {
+	char index_str[11];
+	snprintf(index_str, 10, index);
+
+	int i = 0;
+	for(; i < strlen(index_str); i++) { 
+		dest[i] = '_';
+	}
+	dest[i] = '\0';
+	
+	return i;
+}

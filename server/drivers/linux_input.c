@@ -122,7 +122,10 @@ linuxInput_init (Driver *drvthis)
 	char buf[20];
 	i = 0;
 	while(1) {
-		snprintf(buf, 10, "key/#%d", i);
+		char underscores[10];
+		config_array_index(underscores, i);
+
+		snprintf(buf, 10, "key/#%s%d", underscores, i);
 		s = drvthis->config_get_string(drvthis, buf, NULL);
 		if(s == NULL) {
 			break;

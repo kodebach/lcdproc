@@ -21,7 +21,7 @@
 IfaceInfo iface[MAX_INTERFACES];	/* interface info */
 
 /** Update screen content */
-int iface_screen(int rep, int display, int *flags_ptr, KeySet* config);
+int iface_screen(int rep, int display, int *flags_ptr, Config* config);
 /** read interface stats from /proc/net/dev */
 int get_iface_stats(IfaceInfo *interface);
 /** send initial commands to server to add the speed screen */

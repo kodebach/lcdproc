@@ -237,7 +237,7 @@ static int process_kdb(char *configfile)
 		return -1;
 	}
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY);
+	Config* config = econfig_open(CONFIG_BASE_KEY);
 	if (config == NULL) {
 		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
 		return -1;

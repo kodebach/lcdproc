@@ -123,8 +123,7 @@ typedef enum {
 /* And how do we define the exported functions */
 #define MODULE_EXPORT
 
-typedef struct _KeySet	KeySet;
-typedef struct _Key Key;
+typedef struct _KeySet Config;
 
 typedef struct lcd_logical_driver {
 
@@ -204,8 +203,8 @@ typedef struct lcd_logical_driver {
 	/* Configfile functions */
 	// TODO (kodebach): document
 
-	KeySet* config;
-	Key* config_base_key;
+	Config* config;
+	const char* config_base_key;
 
 	bool (*config_get_bool)	(struct lcd_logical_driver * drvthis, const char *keyname, bool default_value);
 	long int (*config_get_long)	(struct lcd_logical_driver * drvthis, const char *keyname, long int default_value);

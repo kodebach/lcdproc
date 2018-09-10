@@ -129,7 +129,7 @@ char *pidfile = NULL;
 int pidfile_written = FALSE;
 char *displayname = NULL;	/**< display name for the main menu */
 
-static KeySet* config = NULL; // TODO (kodebach): document
+static Config* config = NULL; // TODO (kodebach): document
 
 /** Returns the network name of this machine */
 const char *
@@ -442,33 +442,36 @@ process_configfile(char *configfile)
 	 * check for config file variables to override all the sequence
 	 * defaults
 	 */
-	Key* nameKey = keyNew(CONFIG_BASE_KEY"/screenmode", KEY_END); // only used for string manipulation
-	keyAddBaseName(nameKey, "(longname)");
 	for (int k = 0; sequence[k].which != 0; k++) {
+		if(sequence[k].configname == NULL) {
+			continue;
+		}
+
+		char* screenmodeName = calloc(strlen(CONFIG_BASE_KEY"/screenmode") + 1 + strlen(sequence[k].configname) + 15, sizeof(char));
+		strcpy(screenmodeName, CONFIG_BASE_KEY"/screenmode/");
+		strcat(screenmodeName, sequence[k].configname);
+		char* screenmodeBaseNameEnd = screenmodeName + strlen(screenmodeName);
+
 		if (sequence[k].configname != NULL) {
-			keySetBaseName(nameKey, sequence[k].configname);
+			strncpy(screenmodeName, "/ontime", 15);
+			sequence[k].on_time = econfig_get_long(config, screenmodeName, sequence[k].on_time);
 
-			keyAddBaseName(nameKey, "ontime");
-			sequence[k].on_time = econfig_get_long(config, keyName(nameKey), sequence[k].on_time);
+			strncpy(screenmodeName, "/offtime", 15);
+			sequence[k].off_time = econfig_get_long(config, screenmodeName, sequence[k].off_time);
 
-			keySetBaseName(nameKey, "offtime");
-			sequence[k].off_time = econfig_get_long(config, keyName(nameKey), sequence[k].off_time);
+			strncpy(screenmodeName, "/showinvisible", 15);
+			sequence[k].show_invisible = econfig_get_bool(config, screenmodeName, sequence[k].show_invisible);
 
-			keySetBaseName(nameKey, "showinvisible");
-			sequence[k].show_invisible = econfig_get_bool(config, keyName(nameKey), sequence[k].show_invisible);
-
-			keySetBaseName(nameKey, "active");
-			if (econfig_get_bool(config, keyName(nameKey), sequence[k].flags & ACTIVE)) {
+			strncpy(screenmodeName, "/active", 15);
+			if (econfig_get_bool(config, screenmodeName, sequence[k].flags & ACTIVE)) {
 				sequence[k].flags |= ACTIVE;
 			}
 			else {
 				sequence[k].flags &= (~ACTIVE);
 			}
-
-			keySetBaseName(nameKey, NULL); // remove sequence[k].longname
 		}
+		free(screenmodeName);
 	}
-	keyDel(nameKey);
 
 	return 1;
 }

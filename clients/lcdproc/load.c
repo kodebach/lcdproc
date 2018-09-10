@@ -46,7 +46,7 @@
  * \return  The backlight state
  */
 int
-xload_screen(int rep, int display, int *flags_ptr, KeySet* config)
+xload_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	static int gauge_hgt = 0;
 	static double loads[LCD_MAX_WIDTH];

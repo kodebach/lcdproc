@@ -6,10 +6,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <kdbease.h>
+#include <elektra/kdb.h>
 
-KeySet* econfig_open(const char* baseKeyName)
+Config* econfig_open(const char* baseKeyName)
 {
-    KeySet* config = ksNew(0, KS_END);
+    Config* config = ksNew(0, KS_END);
     Key* parent_key = keyNew(baseKeyName, KEY_END);
 	KDB* kdb = kdbOpen(parent_key);
 	if (kdbGet(kdb, config, parent_key) < 0) {
@@ -26,12 +27,12 @@ KeySet* econfig_open(const char* baseKeyName)
     return config;
 }
 
-void econfig_close(KeySet* config)
+void econfig_close(Config* config)
 {
     ksDel(config);
 }
 
-bool econfig_exists(KeySet* config, const char* keyName)
+bool econfig_exists(Config* config, const char* keyName)
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 
@@ -46,7 +47,7 @@ bool econfig_exists(KeySet* config, const char* keyName)
 	return value != NULL;
 }
 
-char* econfig_get_string(KeySet* config, const char* keyName, char* default_value)
+char* econfig_get_string(Config* config, const char* keyName, char* default_value)
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 
@@ -61,7 +62,7 @@ char* econfig_get_string(KeySet* config, const char* keyName, char* default_valu
 	return value;
 }
 
-long int econfig_get_long(KeySet* config, const char* keyName, const long int default_value)
+long int econfig_get_long(Config* config, const char* keyName, const long int default_value)
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
@@ -83,7 +84,7 @@ long int econfig_get_long(KeySet* config, const char* keyName, const long int de
 	return default_value;
 }
 
-bool econfig_get_bool(KeySet* config, const char* keyName, const bool default_value)
+bool econfig_get_bool(Config* config, const char* keyName, const bool default_value)
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
@@ -109,7 +110,7 @@ bool econfig_get_bool(KeySet* config, const char* keyName, const bool default_va
 }
 
 
-double econfig_get_double(KeySet* config, const char* keyName, const double default_value)
+double econfig_get_double(Config* config, const char* keyName, const double default_value)
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
@@ -131,7 +132,7 @@ double econfig_get_double(KeySet* config, const char* keyName, const double defa
 	return default_value;
 }
 
-long int econfig_get_enum(KeySet* config, const char* keyName, const int default_value, const long int enum_size, const char** enum_values)
+long int econfig_get_enum(Config* config, const char* keyName, const int default_value, const long int enum_size, const char** enum_values)
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
@@ -153,14 +154,14 @@ long int econfig_get_enum(KeySet* config, const char* keyName, const int default
 	return default_value;
 }
 
-KeySet* econfig_array_start(KeySet* config, const char* arrayKeyName, size_t* size_ptr)
+Config* econfig_array_start(Config* config, const char* arrayKeyName, int* size_ptr)
 {
 	Key* key = ksLookupByName(config, arrayKeyName, 0);
 	if (key == NULL) {
 		return NULL;
 	}
 	
-	KeySet* array = elektraArrayGet(key, config);
+	Config* array = elektraArrayGet(key, config);
 	keyDel(key);
 	
 	if(array == NULL) {
@@ -168,21 +169,21 @@ KeySet* econfig_array_start(KeySet* config, const char* arrayKeyName, size_t* si
 	}
 	
 	if(size_ptr != NULL) {
-		*size_ptr = (size_t) ksGetSize(array);
+		*size_ptr = (int) ksGetSize(array);
 	}
 
 	ksRewind(array);
 	return array;
 }
 
-char* econfig_array_next(KeySet* array) {
+char* econfig_array_next(Config* array) {
 	Key* current = ksNext(array);
 	char* name = strdup(keyName(current));
 	keyDel(current);
 	return name;
 }
 
-void econfig_array_end(KeySet* array, char* lastElement) {
+void econfig_array_end(Config* array, char* lastElement) {
 	free(lastElement);
 	ksDel(array);
 }

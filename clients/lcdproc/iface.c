@@ -40,12 +40,12 @@ static int transfer_screen = 0;	/* by default, transfer screen is not shown */
  * \return  0 on success, -1 on error
  */
 static int
-iface_read_config(KeySet* config)
+iface_read_config(Config* config)
 {
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
 	/* Read config settings */
-	KeySet* array = econfig_array_start(config, CONFIG_BASE_KEY"/screenmode/iface/interface", NULL);
+	Config* array = econfig_array_start(config, CONFIG_BASE_KEY"/screenmode/iface/interface", NULL);
 	if(array == NULL) {
 		report (RPT_ERR, "could not read interfaces");
 		return -1;
@@ -139,7 +139,7 @@ iface_read_config(KeySet* config)
  * \return  Always 0
  */
 int
-iface_screen(int rep, int display, int *flags_ptr, KeySet* config)
+iface_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	/* interval since last update */
 	unsigned int interval = difftime(time(NULL), iface[0].last_online);

@@ -61,13 +61,13 @@ server_screen_init(void)
 	Widget *w;
 	int i;
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	Config* config = econfig_open(CONFIG_BASE_KEY"/server");
 	if (config == NULL) {
 		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
 		return -1;
 	}
 
-	has_hello_msg = econfig_exists(config, CONFIG_BASE_KEY"/general/hello");
+	has_hello_msg = econfig_exists(config, CONFIG_BASE_KEY"/server/hello");
 
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
@@ -103,10 +103,14 @@ server_screen_init(void)
 	if (has_hello_msg) {		/* show whole Hello message */
 		int i;
 
-		char buf[64];
+		Config* array = econfig_array_start(config, CONFIG_BASE_KEY"/server/hello", NULL);
+		char* arrayElement = NULL;
 		for (i = 0; i < display_props->height; i++) {
-			snprintf(buf, 64, "%s/general/hello/#%d", CONFIG_BASE_KEY, i);
-	 		char *line = econfig_get_string(config, buf, "");
+			arrayElement = econfig_array_next(array);
+			if(arrayElement == NULL) {
+				break;
+			}
+	 		char *line = econfig_get_string(config, arrayElement, "");
 			char id[8];
 
 			sprintf(id, "line%d", i+1);
@@ -117,6 +121,7 @@ server_screen_init(void)
 			}
 			free(line);
 		}
+		econfig_array_end(array, arrayElement);
 	}
 
 	econfig_close(config);
@@ -227,24 +232,29 @@ goodbye_screen(void)
 
 	drivers_clear();
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	Config* config = econfig_open(CONFIG_BASE_KEY"/server");
 	if (config == NULL) {
 		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
 		return -1;
 	}
 
-	if (econfig_exists(config, CONFIG_BASE_KEY"/general/goodbye")) {	/* custom GoodBye */
+	if (econfig_exists(config, CONFIG_BASE_KEY"/server/goodbye")) {	/* custom GoodBye */
 		int i;
 
 		/* loop over all display lines to read config & display message */
-		char buf[64];
+		Config* array = econfig_array_start(config, CONFIG_BASE_KEY"/server/hello", NULL);
+		char* arrayElement = NULL;
 		for (i = 0; i < display_props->height; i++) {
-			snprintf(buf, 64, "%s/general/goodbye/#%d", CONFIG_BASE_KEY, i);
-			char *line = econfig_get_string(config, buf, "");
+			arrayElement = econfig_array_next(array);
+			if(arrayElement == NULL) {
+				break;
+			}
+	 		char *line = econfig_get_string(config, arrayElement, "");;
 
 			drivers_string(1, 1+i, line);
 			free(line);
 		}
+		econfig_array_end(array, arrayElement);
 	}
 	else {		/* default GoodBye */
 		if ((display_props->height >= 2) && (display_props->width >= 16)) {

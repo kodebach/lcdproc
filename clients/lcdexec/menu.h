@@ -95,7 +95,7 @@ typedef struct menu_entry {
 } MenuEntry;
 
 
-MenuEntry* main_menu_read(KeySet* config, const char *name);
+MenuEntry* main_menu_read(Config* config, const char *name);
 int menu_sock_send(MenuEntry *me, MenuEntry *parent, int sock);
 MenuEntry *menu_find_by_id(MenuEntry *me, int id);
 const char *menu_command(MenuEntry *me);

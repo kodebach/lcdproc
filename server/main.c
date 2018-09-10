@@ -407,17 +407,17 @@ process_kdb(char *configfile)
 	}
 	*/
 
-	KeySet* config = econfig_open(CONFIG_BASE_KEY"/general");
+	Config* config = econfig_open(CONFIG_BASE_KEY"/server");
 	if (config == NULL) {
 		report( RPT_ERR, "error reading config from kdb (see debug log for more)");
 		return -1;
 	}
 
 	if (bind_port == UNSET_INT)
-		bind_port = econfig_get_long(config, CONFIG_BASE_KEY"/general/port", UNSET_INT);
+		bind_port = econfig_get_long(config, CONFIG_BASE_KEY"/server/port", UNSET_INT);
 
 	if (strcmp(bind_addr, UNSET_STR) == 0) {
-		char* bind = econfig_get_string(config, CONFIG_BASE_KEY"/general/bind", UNSET_STR);
+		char* bind = econfig_get_string(config, CONFIG_BASE_KEY"/server/bind", UNSET_STR);
 		strncpy(bind_addr, bind, sizeof(bind_addr));
 		if(strcmp(bind, UNSET_STR) != 0) {
 			free(bind);
@@ -425,7 +425,7 @@ process_kdb(char *configfile)
 	}
 
 	if (strcmp(user, UNSET_STR) == 0) {
-		char* usr = econfig_get_string(config, CONFIG_BASE_KEY"/general/user", UNSET_STR);
+		char* usr = econfig_get_string(config, CONFIG_BASE_KEY"/server/user", UNSET_STR);
 		strncpy(user, usr, sizeof(user));
 		if(strcmp(usr, UNSET_STR) != 0) {
 			free(usr);
@@ -433,7 +433,7 @@ process_kdb(char *configfile)
 	}
 
 	if (default_duration == UNSET_INT) {
-		default_duration = econfig_get_double(config, CONFIG_BASE_KEY"/general/waittime", 0.0) * 1e6 / frame_interval;
+		default_duration = econfig_get_double(config, CONFIG_BASE_KEY"/server/waittime", 0.0) * 1e6 / frame_interval;
 		if (default_duration == 0)
 			default_duration = UNSET_INT;
 		else if (default_duration * frame_interval < 2e6) {
@@ -443,30 +443,30 @@ process_kdb(char *configfile)
 	}
 
 	if (foreground_mode == UNSET_INT) {
-		foreground_mode = econfig_get_bool(config, CONFIG_BASE_KEY"/general/foreground", foreground_mode);
+		foreground_mode = econfig_get_bool(config, CONFIG_BASE_KEY"/server/foreground", foreground_mode);
 	}
 
 	if (rotate_server_screen == UNSET_INT) {
 		const char *values[3] = {"off", "on", "blank"};
-		rotate_server_screen = econfig_get_enum(config, CONFIG_BASE_KEY "/general/serverscreen", 1, 3, values);
+		rotate_server_screen = econfig_get_enum(config, CONFIG_BASE_KEY "/server/serverscreen", 1, 3, values);
 	}
 
 	if (backlight == UNSET_INT) {
 		const char *values[3] = {"off", "on", "open"};
-		backlight = econfig_get_enum(config, CONFIG_BASE_KEY"/general/backlight", 2, 3, values);
+		backlight = econfig_get_enum(config, CONFIG_BASE_KEY"/server/backlight", 2, 3, values);
 	}
 
 	if (heartbeat == UNSET_INT) {
 		const char *values[3] = {"off", "on", "open"};
-		heartbeat = econfig_get_enum(config, CONFIG_BASE_KEY"/general/heartbeat", 2, 3, values);
+		heartbeat = econfig_get_enum(config, CONFIG_BASE_KEY"/server/heartbeat", 2, 3, values);
 	}
 
 	if (autorotate == UNSET_INT) {
-		autorotate = econfig_get_bool(config, CONFIG_BASE_KEY"/general/autorotate", DEFAULT_AUTOROTATE);
+		autorotate = econfig_get_bool(config, CONFIG_BASE_KEY"/server/autorotate", DEFAULT_AUTOROTATE);
 	}
 
 	if (titlespeed == UNSET_INT) {
-		int speed = econfig_get_long(config, CONFIG_BASE_KEY"/general/titlespeed", DEFAULT_TITLESPEED);
+		int speed = econfig_get_long(config, CONFIG_BASE_KEY"/server/titlespeed", DEFAULT_TITLESPEED);
 
 		/* set titlespeed */
 		titlespeed = (speed <= TITLESPEED_NO)
@@ -474,14 +474,14 @@ process_kdb(char *configfile)
 			     : min(speed, TITLESPEED_MAX);
 	}
 
-	frame_interval = econfig_get_long(config, CONFIG_BASE_KEY"/general/frameinterval", DEFAULT_FRAME_INTERVAL);
+	frame_interval = econfig_get_long(config, CONFIG_BASE_KEY"/server/frameinterval", DEFAULT_FRAME_INTERVAL);
 
 	if (report_dest == UNSET_INT) {
-		bool rs = econfig_get_bool(config, CONFIG_BASE_KEY"/general/reporttosyslog", report_dest == RPT_DEST_SYSLOG);
+		bool rs = econfig_get_bool(config, CONFIG_BASE_KEY"/server/reporttosyslog", report_dest == RPT_DEST_SYSLOG);
 		report_dest = rs ? RPT_DEST_SYSLOG : RPT_DEST_STDERR;
 	}
 	if (report_level == UNSET_INT) {
-		report_level = econfig_get_long(config, CONFIG_BASE_KEY"/general/reportlevel", UNSET_INT);
+		report_level = econfig_get_long(config, CONFIG_BASE_KEY"/server/reportlevel", UNSET_INT);
 	}
 
 
@@ -493,7 +493,7 @@ process_kdb(char *configfile)
 	if (num_drivers == 0) {
 		/* loop over all the Driver= directives to read the driver names */
 		size_t driverCount;
-		KeySet* array = econfig_array_start(config, CONFIG_BASE_KEY"/general/driver", &driverCount);
+		Config* array = econfig_array_start(config, CONFIG_BASE_KEY"/server/driver", &driverCount);
 		
 		if (array != NULL) {
 			num_drivers = (int) driverCount;
@@ -501,7 +501,9 @@ process_kdb(char *configfile)
 			const char* arrayElement = NULL;
 			int i = 0;
 			while((arrayElement = econfig_array_next(array)) != NULL) {
-				drivernames[i] = econfig_get_string(config, arrayElement, NULL);
+				char* driverRef = econfig_get_string(config, arrayElement, NULL);
+				drivernames[i] = strdup(strrchr(driverRef, '/') + 1);
+				free(driverRef);
 
 				if (drivernames[i] == NULL) {
 					report(RPT_ERR, "error reading driver name from key: %s", arrayElement);

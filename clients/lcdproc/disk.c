@@ -51,7 +51,7 @@
  * \return  Always 0
  */
 int
-disk_screen(int rep, int display, int *flags_ptr, KeySet* config)
+disk_screen(int rep, int display, int *flags_ptr, Config* config)
 {
 	static mounts_type mnt[256];
 	static int count = 0;
