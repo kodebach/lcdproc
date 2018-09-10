@@ -46,7 +46,7 @@ MenuEntry* param_read(Config* config, const char* paramName)
 		return NULL;
 	}
 	*type = '\0';
-	type = strrchr(paramName, '/');
+	type = strrchr(paramName, '/') + 1;
 
 	MenuEntry* param = calloc(1, sizeof(MenuEntry));
 	if(param == NULL) {
@@ -229,7 +229,7 @@ MenuEntry* command_read(Config* config, const char* commandName)
 
 	command->type = MT_EXEC;
 	command->id = id++;
-	command->name = strdup(strrchr(commandName, ',') + 1);
+	command->name = strdup(strrchr(commandName, '/') + 1);
 
 	// slash + longest subkey (param + elektra array key) + \0
 	char* keyName = calloc(strlen(commandName) + 1 + (5 + 1 + 20) + 1 , sizeof(char));
@@ -282,8 +282,7 @@ MenuEntry* command_read(Config* config, const char* commandName)
 	}
 
 	// add an "Apply_?" action
-	MenuEntry **addr = &command->children;
-	if ((command->numChildren > 0) && (addr != NULL)) {
+	if ((command->numChildren > 0) && (command->lastChild != NULL)) {
 		MenuEntry *apply = calloc(1, sizeof(MenuEntry)); // auto-NULL elements
 
 		if (apply == NULL) {
@@ -314,7 +313,8 @@ MenuEntry* command_read(Config* config, const char* commandName)
 		apply->children = NULL;
 		apply->numChildren = 0;
 
-		*addr = apply;
+		command->lastChild->next = apply;
+		command->lastChild = command->lastChild->next;
 	}
 
 	return command;
@@ -366,7 +366,6 @@ int menu_read_entries(Config* config, MenuEntry* menu, const char* menuName) {
 	char* entry = NULL;
 	while((entry = econfig_array_next(array)) != NULL) {
 		char* referencedKey = econfig_get_string(config, entry, NULL);
-		free(referencedKey);
 		MenuEntry* entry; // command or submenu
 		char* lastSlash = strrchr(referencedKey, '/');
 
@@ -378,13 +377,14 @@ int menu_read_entries(Config* config, MenuEntry* menu, const char* menuName) {
 			report(RPT_INFO, "unknown type of menu element %s", referencedKey);
 			return -1;
 		}
+		free(referencedKey);
 
 		if(entry == NULL) {
 			return -1;
 		}
 
 		menu->numChildren++;
-		if (menu->children == NULL) {
+		if (menu->lastChild == NULL) {
 			menu->children = entry;
 			menu->lastChild = entry;
 		} else {
@@ -408,7 +408,7 @@ MenuEntry* main_menu_read(Config* config, const char *name)
 
 	menu->type = MT_MENU;
 	menu->id = id++;
-	menu->name = strdup(name);
+	menu->name = NULL;
 
 	if(menu_read_entries(config, menu, name) != 0) {
 		menu_free(menu);
@@ -651,6 +651,7 @@ void menu_free(MenuEntry *me)
 					menu_free(old);
 				}
 				me->children = NULL;
+				me->lastChild = NULL;
 				break;
 			case MT_ARG_SLIDER:
 				if (me->data.slider.mintext != NULL)

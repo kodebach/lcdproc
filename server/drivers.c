@@ -69,7 +69,7 @@ drivers_load_driver(const char *name)
 	}
 
 	/* Retrieve data from config file */
-	driverpath = econfig_get_string(config, CONFIG_BASE_KEY"general/driverpath", "");
+	driverpath = econfig_get_string(config, CONFIG_BASE_KEY"/server/driverpath", "");
 
 	static const char* fileKey = "file";
 	char* keyName = malloc(strlen(CONFIG_BASE_KEY"/driver") + 1 + strlen(name) + 1 + strlen(fileKey) + 1); // baseKey + / + name + / + fileKey + \0

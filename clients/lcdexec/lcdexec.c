@@ -42,6 +42,10 @@
 #define DEFAULT_CONFIGFILE	SYSCONFDIR "/lcdexec.conf"
 #define DEFAULT_PIDFILE		PIDFILEDIR "/lcdexec.pid"
 
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
+
 
 /** information about a process started by lcdexec */
 typedef struct ProcInfo {

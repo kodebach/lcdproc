@@ -53,7 +53,7 @@ char* econfig_get_string(Config* config, const char* keyName, char* default_valu
 
 	if (key == NULL) {
 		keyDel(key);
-		return default_value;
+		return default_value == NULL ? NULL : strdup(default_value);
 	}
 
 	char* value = strdup(keyString(key));
@@ -178,6 +178,10 @@ Config* econfig_array_start(Config* config, const char* arrayKeyName, int* size_
 
 char* econfig_array_next(Config* array) {
 	Key* current = ksNext(array);
+	if (current == NULL) {
+		return NULL;
+	}
+
 	char* name = strdup(keyName(current));
 	keyDel(current);
 	return name;
