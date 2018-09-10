@@ -153,6 +153,40 @@ long int econfig_get_enum(KeySet* config, const char* keyName, const int default
 	return default_value;
 }
 
+KeySet* econfig_array_start(KeySet* config, const char* arrayKeyName, size_t* size_ptr)
+{
+	Key* key = ksLookupByName(config, arrayKeyName, 0);
+	if (key == NULL) {
+		return NULL;
+	}
+	
+	KeySet* array = elektraArrayGet(key, config);
+	keyDel(key);
+	
+	if(array == NULL) {
+		return NULL;
+	}
+	
+	if(size_ptr != NULL) {
+		*size_ptr = (size_t) ksGetSize(array);
+	}
+
+	ksRewind(array);
+	return array;
+}
+
+char* econfig_array_next(KeySet* array) {
+	Key* current = ksNext(array);
+	char* name = strdup(keyName(current));
+	keyDel(current);
+	return name;
+}
+
+void econfig_array_end(KeySet* array, char* lastElement) {
+	free(lastElement);
+	ksDel(array);
+}
+
 int econfig_array_iterate(KeySet* config, const char* arrayKeyName, econfig_iterate_callback callback, void* userdata)
 {
 	Key* key = ksLookupByName(config, arrayKeyName, 0);

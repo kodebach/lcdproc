@@ -338,7 +338,11 @@ static int process_configfile(char *configfile)
 		default_shell = "/bin/sh";
 	}
 
-	main_menu = main_menu_read(config, CONFIG_BASE_KEY"/menu/main");
+	char* main_menu_key = econfig_get_string(config, CONFIG_BASE_KEY"/menu/main", NULL);
+	if(main_menu_key != NULL) {
+		main_menu = main_menu_read(config, main_menu_key);
+	}
+	free(main_menu_key);
 
 #if defined(DEBUG)
 	menu_dump(main_menu);

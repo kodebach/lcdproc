@@ -32,6 +32,10 @@ bool econfig_get_bool(KeySet* config, const char* keyName, const bool default_va
 double econfig_get_double(KeySet* config, const char* keyName, const double default_value);
 long int econfig_get_enum(KeySet* config, const char* keyName, const int default_value, const long int enum_size, const char** enum_values);
 
+KeySet* econfig_array_start(KeySet* config, const char* arrayKeyName, size_t* size_ptr);
+char* econfig_array_next(KeySet* array);
+void econfig_array_end(KeySet* array, char* lastElement);
+
 int econfig_array_iterate(KeySet* config, const char* arrayKeyName, econfig_iterate_callback callback, void* userdata);
 size_t econfig_array_size(KeySet* config, const char* arrayKeyName);
 

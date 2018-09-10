@@ -36,126 +36,183 @@ static int id = 0;
 int entry_read_callback(KeySet* config, size_t index, Key* element, void* userdata);
 int param_read_callback(KeySet* config, size_t index, Key* element, void* userdata);
 
-MenuEntry* param_read(KeySet* config, Key* element);
-MenuEntry* entry_read(KeySet* config, Key* element);
-MenuEntry* menu_read(KeySet* config, Key* element);
+MenuEntry* param_read(KeySet* config, const char* element);
+MenuEntry* command_read(KeySet* config, const char* element);
+MenuEntry* menu_read(KeySet* config, const char* element);
 
 
-MenuEntry* param_read(KeySet* config, Key* element)
+MenuEntry* param_read(KeySet* config, const char* paramName)
 {
+	char* dupName = strdup(paramName);
+	char* type = strrchr(paramName, '/');
+	if(type == dupName) {
+		return NULL;
+	}
+	*type = '\0';
+	type = strrchr(paramName, '/');
+
 	MenuEntry* param = calloc(1, sizeof(MenuEntry));
 	if(param == NULL) {
 		return NULL;
 	}
 
 	param->id = id++;
-	param->name = strdup(keyBaseName(element));
+	param->name = strdup(strrchr(paramName, '/') + 1);
 
-	keyAddBaseName(element, "type");
-	long int type = econfig_get_enum(config, keyName(element), -1, 6, paramTypes);
-	switch(type) {
+	long int typeId = -1;
+	for(size_t i = 0; i < 6; i++)
+	{
+		if(strcasecmp(paramTypes[i], type) == 0) {
+			typeId = i;
+			break;
+		}
+	}
+	free(dupName);
+	
+	char* keyName;
+	char* keyBaseNameEnd;
+	switch(typeId) {
 		case 0: // slider
 			param->type = MT_ARG_SLIDER;
 
-			keySetBaseName(element, "value");
-			param->data.slider.value = econfig_get_long(config, keyName(element), 0);
+			keyName = calloc(strlen(paramName) + 10, sizeof(char));
+			strcpy(keyName, paramName);
+			keyBaseNameEnd = keyName + strlen(keyName);
+			
+			strncpy(keyBaseNameEnd, "/value", 10);
+			param->data.slider.value = econfig_get_long(config, keyName, 0);
 
-			keySetBaseName(element, "minvalue");			
-			param->data.slider.minval = econfig_get_long(config, keyName(element), 0);
+			strncpy(keyBaseNameEnd, "/minvalue", 10);			
+			param->data.slider.minval = econfig_get_long(config, keyName, 0);
 
-			keySetBaseName(element, "maxvalue");			
-			param->data.slider.maxval = econfig_get_long(config, keyName(element), 1000);
+			strncpy(keyBaseNameEnd, "/maxvalue", 10);			
+			param->data.slider.maxval = econfig_get_long(config, keyName, 1000);
 
 			char buf[35];
 			snprintf(buf, 34, "%d", param->data.slider.minval);
-			keySetBaseName(element, "mintext");
-			param->data.slider.mintext = econfig_get_string(config, keyName(element), buf);
+			strncpy(keyBaseNameEnd, "/mintext", 10);
+			param->data.slider.mintext = econfig_get_string(config, keyName, buf);
 
 			snprintf(buf, 34, "%d", param->data.slider.maxval);
-			keySetBaseName(element, "maxtext");			
-			param->data.slider.maxtext = econfig_get_string(config, keyName(element), buf);
+			strncpy(keyBaseNameEnd, "/maxtext", 10);			
+			param->data.slider.maxtext = econfig_get_string(config, keyName, buf);
 
-			keySetBaseName(element, "stepsize");			
-			param->data.slider.stepsize = econfig_get_long(config, keyName(element), 1);
+			strncpy(keyBaseNameEnd, "/stepsize", 10);			
+			param->data.slider.stepsize = econfig_get_long(config, keyName, 1);
+			free(keyName);
 			break;
 		case 1: // ring
 			param->type = MT_ARG_RING;
 
-			keySetBaseName(element, "value");
-			param->data.ring.value = econfig_get_long(config, keyName(element), 0);
+			keyName = calloc(strlen(paramName) + 8, sizeof(char));
+			strcpy(keyName, paramName);
+			keyBaseNameEnd = keyName + strlen(keyName);
+
+			strncpy(keyBaseNameEnd, "/value", 8);
+			param->data.ring.value = econfig_get_long(config, keyName, 0);
 			
-			keySetBaseName(element, "string");
-			size_t numStrings = econfig_array_size(config, keyName(element));
-			param->data.ring.strings = calloc(sizeof(char *), numStrings+1);
+			strncpy(keyBaseNameEnd, "/string", 8);
+			size_t numStrings;
+			KeySet* stringsArray = econfig_array_start(config, keyName, &numStrings);
+			if(stringsArray == NULL) {
+				free(keyName);
+				param->data.ring.strings = calloc(1, sizeof(char *));
+				param->data.ring.strings[0] = NULL;
+				break;
+			}
+
+			param->data.ring.strings = calloc(numStrings+1, sizeof(char *));
 			param->data.ring.strings[numStrings] = NULL;
 
-			char nameBuf[32];
-			for(size_t i = 0; i < numStrings; i++)
+			size_t i = 0;
+			char* elementName = NULL;
+			while((elementName = econfig_array_next(stringsArray)) != NULL) 
 			{
-				snprintf(nameBuf, 31, "#%li", i);
-				keySetBaseName(element, nameBuf);
-				param->data.ring.strings[i] = econfig_get_string(config, keyName(element), NULL);
+				param->data.ring.strings[i] = econfig_get_string(config, elementName, NULL);
+				i++;
 			}
+			econfig_array_end(stringsArray, elementName);
+			free(keyName);
 			break;
 		case 2: // numeric
 			param->type = MT_ARG_NUMERIC;
 
-			keySetBaseName(element, "value");
-			param->data.numeric.value = econfig_get_long(config, keyName(element), 0);
+			keyName = calloc(strlen(paramName) + 10, sizeof(char));
+			strcpy(keyName, paramName);
+			keyBaseNameEnd = keyName + strlen(keyName);
 
-			keySetBaseName(element, "minvalue");
-			param->data.numeric.minval = econfig_get_long(config, keyName(element), 0);
+			strncpy(keyBaseNameEnd, "/value", 10);
+			param->data.numeric.value = econfig_get_long(config, keyName, 0);
 
-			keySetBaseName(element, "maxvalue");
-			param->data.numeric.minval = econfig_get_long(config, keyName(element), 1000);
+			strncpy(keyBaseNameEnd, "/minvalue", 10);			
+			param->data.numeric.minval = econfig_get_long(config, keyName, 0);
+
+			strncpy(keyBaseNameEnd, "/maxvalue", 10);			
+			param->data.numeric.minval = econfig_get_long(config, keyName, 1000);
+			free(keyName);
 			break;
 		case 3: // alpha
 			param->type = MT_ARG_ALPHA;
 
-			keySetBaseName(element, "value");
-			param->data.alpha.value = econfig_get_string(config, keyName(element), "");
+			keyName = calloc(strlen(paramName) + 14, sizeof(char));
+			strcpy(keyName, paramName);
+			keyBaseNameEnd = keyName + strlen(keyName);
+
+			strncpy(keyBaseNameEnd, "/value", 14);
+			param->data.alpha.value = econfig_get_string(config, keyName, "");
 			
-			keySetBaseName(element, "minlength");
-			param->data.alpha.minlen = econfig_get_long(config, keyName(element), 0);
+			strncpy(keyBaseNameEnd, "/minlength", 14);
+			param->data.alpha.minlen = econfig_get_long(config, keyName, 0);
 
-			keySetBaseName(element, "maxlength");
-			param->data.alpha.maxlen = econfig_get_long(config, keyName(element), 100);
+			strncpy(keyBaseNameEnd, "/maxlength", 14);
+			param->data.alpha.maxlen = econfig_get_long(config, keyName, 100);
 
-			keySetBaseName(element, "allowedchars");
-			param->data.alpha.allowed = econfig_get_string(config, keyName(element), "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+			strncpy(keyBaseNameEnd, "/allowedchars", 14);
+			param->data.alpha.allowed = econfig_get_string(config, keyName, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+			free(keyName);
 			break;
 		case 4: // ip
 			param->type = MT_ARG_IP;
 
-			keySetBaseName(element, "value");
-			param->data.ip.value = econfig_get_string(config, keyName(element), "");
+			keyName = calloc(strlen(paramName) + 7, sizeof(char));
+			strcpy(keyName, paramName);
+			keyBaseNameEnd = keyName + strlen(keyName);
+
+			strncpy(keyBaseNameEnd, "/value", 7);
+			param->data.ip.value = econfig_get_string(config, keyName, "");
 			
-			keySetBaseName(element, "v6");
-			param->data.ip.v6 = econfig_get_bool(config, keyName(element), false);
+			strncpy(keyBaseNameEnd, "/v6", 7);
+			param->data.ip.v6 = econfig_get_bool(config, keyName, false);
+			free(keyName);
 			break;
 		case 5: // checkbox
 			param->type = MT_ARG_CHECKBOX;
 
-			keySetBaseName(element, "allowgray");
-			param->data.checkbox.allow_gray = econfig_get_bool(config, keyName(element), false);
+			keyName = calloc(strlen(paramName) + 11, sizeof(char));
+			strcpy(keyName, paramName);
+			keyBaseNameEnd = keyName + strlen(keyName);
 
-			keySetBaseName(element, "value");
+			strncpy(keyBaseNameEnd, "/allowgray", 11);
+			param->data.checkbox.allow_gray = econfig_get_bool(config, keyName, false);
+
+			strncpy(keyBaseNameEnd, "/value", 11);
 			const char* values[] = {"off", "on", "gray"};
-			param->data.checkbox.value = econfig_get_enum(config, keyName(element), 0, 3, values);
+			param->data.checkbox.value = econfig_get_enum(config, keyName, 0, 3, values);
 
 			if(!param->data.checkbox.allow_gray && param->data.checkbox.value == 2) {
 				param->data.checkbox.value = 0;
 			}
 
 			// get replacement strings for different values
-			keySetBaseName(element, "offtext");
-			param->data.checkbox.map[0] = econfig_get_string(config, keyName(element), NULL);
+			strncpy(keyBaseNameEnd, "/offtext", 11);
+			param->data.checkbox.map[0] = econfig_get_string(config, keyName, NULL);
 
-			keySetBaseName(element, "ontext");
-			param->data.checkbox.map[1] = econfig_get_string(config, keyName(element), NULL);
+			strncpy(keyBaseNameEnd, "/ontext", 11);
+			param->data.checkbox.map[1] = econfig_get_string(config, keyName, NULL);
 
-			keySetBaseName(element, "graytext");
-			param->data.checkbox.map[2] = econfig_get_string(config, keyName(element), NULL);
+			strncpy(keyBaseNameEnd, "/graytext", 11);
+			param->data.checkbox.map[2] = econfig_get_string(config, keyName, NULL);
+			free(keyName);
 			break;
 		default:
 			report(RPT_DEBUG, "illegal parameter type");
@@ -166,94 +223,96 @@ MenuEntry* param_read(KeySet* config, Key* element)
 	return param;
 }
 
-int param_read_callback(KeySet* config, size_t index, Key* element, void* userdata)
+MenuEntry* command_read(KeySet* config, const char* commandName)
 {
-	const char* paramName = econfig_get_string(config, keyName(element), NULL);
-	if (paramName == NULL) {
-		return -1;
+	MenuEntry* command = calloc(1, sizeof(MenuEntry));
+	if (command == NULL) {
+		return NULL;
 	}
 
-	Key* paramKey = ksLookupByName(config, paramName, 0);
-	MenuEntry* param = param_read(config, paramKey);
-	keyDel(paramKey);
+	command->type = MT_EXEC;
+	command->id = id++;
+	command->name = strdup(strrchr(commandName, ',') + 1);
 
-	MenuEntry *entry = (MenuEntry*) userdata;	
+	// slash + longest subkey (param + elektra array key) + \0
+	char* keyName = calloc(strlen(commandName) + 1 + (5 + 1 + 20) + 1 , sizeof(char));
+	strcpy(keyName, commandName);
+	const char* keyBaseNameEnd = keyName + strlen(keyName);
 	
-	entry->numChildren++;
-	if (entry->children == NULL) {
-		entry->children = param;
-		entry->lastChild = param;
-	} else {
-		entry->lastChild->next = param;
-		entry->lastChild = entry->lastChild->next;
+	strncpy(keyBaseNameEnd, "/exec", 13);
+	char* exec = econfig_get_string(config, keyName, NULL);
+	command->data.exec.command = exec;
+
+	strncpy(keyBaseNameEnd, "/displayname", 13);
+	command->displayname = econfig_get_string(config, keyName, NULL);
+	if (command->displayname == NULL) {
+		command->displayname = strdup(command->name);
 	}
 
-	return 0;
-}
+	strncpy(keyBaseNameEnd, "/feedback", 13);
+	command->data.exec.feedback = econfig_get_bool(config, keyName, false);
 
-MenuEntry* entry_read(KeySet* config, Key* element)
-{
-	MenuEntry* entry = calloc(1, sizeof(MenuEntry));
-	if (entry == NULL) {
-		return NULL;
-	}
+	command->next = NULL;
+	command->children = NULL;
+	command->numChildren = 0;
 
-	entry->type = MT_EXEC;
-	entry->id = id++;
-	entry->name = strdup(keyBaseName(element));
+	strncpy(keyBaseNameEnd, "/param", 13);
+	KeySet* array = econfig_array_start(config, keyName, NULL);
+	free(keyName);
 
-	keyAddBaseName(element, "exec");
-	char* exec = econfig_get_string(config, keyName(element), NULL);
-	entry->data.exec.command = exec;
+	if(array != NULL) {
+		char* paramEntry = NULL;
+		while((paramEntry = econfig_array_next(array)) != NULL) {
+			char* referencedKey = econfig_get_string(config, paramEntry, NULL);
+			MenuEntry* param = param_read(config, referencedKey);
+			free(referencedKey);
 
-	keySetBaseName(element, "displayname");
-	entry->displayname = econfig_get_string(config, keyName(element), NULL);
-	if (entry->displayname == NULL) {
-		entry->displayname = strdup(entry->name);
-	}
-
-	keySetBaseName(element, "feedback");
-	entry->data.exec.feedback = econfig_get_bool(config, keyName(element), false);
-
-	entry->next = NULL;
-	entry->children = NULL;
-	entry->numChildren = 0;
-
-	keySetBaseName(element, "param");
-	if (econfig_array_iterate(config, keyName(element), param_read_callback, entry) < 0) {
-		menu_free(entry);
-		return NULL;
+			if(param == NULL) {
+				menu_free(command);
+				return NULL;
+			}
+			
+			command->numChildren++;
+			if (command->children == NULL) {
+				command->children = param;
+				command->lastChild = param;
+			} else {
+				command->lastChild->next = param;
+				command->lastChild = command->lastChild->next;
+			}
+		}
+		econfig_array_end(array, paramEntry);
 	}
 
 	// add an "Apply_?" action
-	MenuEntry **addr = &entry->children;
-	if ((entry->numChildren > 0) && (addr != NULL)) {
+	MenuEntry **addr = &command->children;
+	if ((command->numChildren > 0) && (addr != NULL)) {
 		MenuEntry *apply = calloc(1, sizeof(MenuEntry)); // auto-NULL elements
 
 		if (apply == NULL) {
-			menu_free(entry);
+			menu_free(command);
 			return NULL;
 		}
 
 		apply->type = MT_ACTION;
 		apply->id = id++;
-		apply->name = malloc(strlen(entry->name) + 10);
+		apply->name = malloc(strlen(command->name) + 10);
 		if (apply->name == NULL) {
 			menu_free(apply);
-			menu_free(entry);
+			menu_free(command);
 			return NULL;
 		}
 		strcpy(apply->name, "Apply_");
-		strcat(apply->name, entry->name);
+		strcat(apply->name, command->name);
 
 		apply->displayname = strdup("Apply!");
 		if (apply->displayname == NULL) {
 			menu_free(apply);
-			menu_free(entry);
+			menu_free(command);
 			return NULL;
 		}
 
-		apply->parent = entry;
+		apply->parent = command;
 		apply->next = NULL;
 		apply->children = NULL;
 		apply->numChildren = 0;
@@ -261,41 +320,10 @@ MenuEntry* entry_read(KeySet* config, Key* element)
 		*addr = apply;
 	}
 
-	return entry;
+	return command;
 }
 
-int entry_read_callback(KeySet* config, size_t index, Key* element, void* userdata)
-{
-	MenuEntry* menu = (MenuEntry*) userdata;
-
-	MenuEntry* entryOrSubMenu; // entry or submenu
-
-	keyAddBaseName(element, "exec");
-	if (econfig_exists(config, keyName(element))) {
-		// submenu
-		entryOrSubMenu = menu_read(config, element);
-	} else {
-		// command
-		entryOrSubMenu = entry_read(config, element);
-	}
-
-	if(entryOrSubMenu == NULL) {
-		return -1;
-	}
-
-	menu->numChildren++;
-	if (menu->children == NULL) {
-		menu->children = entryOrSubMenu;
-		menu->lastChild = entryOrSubMenu;
-	} else {
-		menu->lastChild->next = entryOrSubMenu;
-		menu->lastChild = menu->lastChild->next;
-	}
-
-	return 0;
-}
-
-MenuEntry* menu_read(KeySet* config, Key* element)
+MenuEntry* menu_read(KeySet* config, const char* menuName)
 {
 	MenuEntry* menu = calloc(1, sizeof(MenuEntry));
 	if(menu == NULL) {
@@ -304,21 +332,72 @@ MenuEntry* menu_read(KeySet* config, Key* element)
 
 	menu->type = MT_MENU;
 	menu->id = id++;
-	menu->name = strdup(keyBaseName(element));
+	menu->name = strdup(strrchr(menuName, '/') + 1);
 
-	keyAddBaseName(element, "displayname");
-	menu->displayname = econfig_get_string(config, keyName(element), NULL);
+	char* keyName = calloc(strlen(menuName) + 1 + 11 + 1, sizeof(char));
+	strcpy(keyName, menuName);
+	strcat(keyName, "/displayname");
+	
+	menu->displayname = econfig_get_string(config, keyName, NULL);
+	free(keyName);
+
 	if (menu->displayname == NULL) {
 		menu->displayname = strdup(menu->name);
 	}
 
-	keySetBaseName(element, "menu");
-	if(!econfig_array_iterate(config, keyName(element), entry_read_callback, menu)) {
+	if(menu_read_entries(config, menu, menuName) != 0) {
 		menu_free(menu);
-		return NULL;
+		menu = NULL;
 	}
 
 	return menu;
+}
+
+int menu_read_entries(KeySet* config, MenuEntry* menu, const char* menuName) {
+	// length of name, /, entry, /, elektra array key, \0
+	char* entryArrayName = calloc(strlen(menuName) + 1 + 5 + 1 + 20 + 1, sizeof(char));
+	strcpy(entryArrayName, menuName);
+	strcat(entryArrayName, "/entry");
+
+	KeySet* array = econfig_array_start(config, entryArrayName, NULL);
+	free(entryArrayName);
+
+	if(array == NULL) {
+		return 0;
+	}
+
+	char* entry = NULL;
+	while((entry = econfig_array_next(array)) != NULL) {
+		char* referencedKey = econfig_get_string(config, entry, NULL);
+		free(referencedKey);
+		MenuEntry* entry; // command or submenu
+		char* lastSlash = strrchr(referencedKey, '/');
+
+		if(strncmp(lastSlash - 8, "/command", 8) == 0) {
+			entry = command_read(config, referencedKey);
+		} else if(strncmp(lastSlash - 5, "/menu", 5) == 0) {
+			entry = menu_read(config, referencedKey);
+		} else {
+			report(RPT_INFO, "unknown type of menu element %s", referencedKey);
+			return -1;
+		}
+
+		if(entry == NULL) {
+			return -1;
+		}
+
+		menu->numChildren++;
+		if (menu->children == NULL) {
+			menu->children = entry;
+			menu->lastChild = entry;
+		} else {
+			menu->lastChild->next = entry;
+			menu->lastChild = menu->lastChild->next;
+		}
+	}
+	econfig_array_end(array, entry);
+
+	return 0;
 }
 
 MenuEntry* main_menu_read(KeySet* config, const char *name)
@@ -334,9 +413,9 @@ MenuEntry* main_menu_read(KeySet* config, const char *name)
 	menu->id = id++;
 	menu->name = strdup(name);
 
-	if(!econfig_array_iterate(config, name, entry_read_callback, menu)) {
+	if(menu_read_entries(config, menu, name) != 0) {
 		menu_free(menu);
-		return NULL;
+		menu = NULL;
 	}
 
 	return menu;
