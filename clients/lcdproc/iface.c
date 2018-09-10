@@ -36,42 +36,6 @@ static int iface_count = 0;	/* number of interfaces */
 static char unit_label[10] = "B";	/* default unit label is Bytes */
 static int transfer_screen = 0;	/* by default, transfer screen is not shown */
 
-static int
-iface_read_interface_callback(KeySet* config, size_t index, Key* element, void* userdata)
-{
-	if (index >= MAX_INTERFACES) {
-		report (RPT_ERR, "too many interfaces: max=%i", MAX_INTERFACES);
-		return -2;
-	}
-
-	debug(RPT_DEBUG, "Label %s count %i", keyName(element), index);	
-
-	keyAddBaseName(element, "name");
-	iface[index].name = econfig_get_string(config, keyName(element), "");
-	if (iface[index].name == NULL) {
-		report(RPT_CRIT, "malloc failure");
-		return -2;
-	}
-	if (*iface[index].name == '\0') {
-		return -1; // stop iteration
-	}
-
-	keySetBaseName(element, "alias");
-	iface[index].alias = econfig_get_string(config, keyName(element), iface[index].name);
-	if (iface[index].alias == NULL) {
-		/*
-			* make alias the same as the interface name in case
-			* strdup() failed
-			*/
-		iface[index].alias = iface[index].name;
-	}
-
-	debug(RPT_DEBUG, "Interface %i: %s alias %s", index, iface[index].name, iface[index].alias);
-	
-	iface_count = index + 1;
-	return 0;
-}
-
 /** Reads and parses configuration file.
  * \return  0 on success, -1 on error
  */
@@ -81,11 +45,54 @@ iface_read_config(KeySet* config)
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
 	/* Read config settings */
-	const int ret = econfig_array_iterate(config, CONFIG_BASE_KEY"/screenmode/iface/interface", iface_read_interface_callback, NULL);
-	if (ret < -1) {
+	KeySet* array = econfig_array_start(config, CONFIG_BASE_KEY"/screenmode/iface/interface", NULL);
+	if(array == NULL) {
 		report (RPT_ERR, "could not read interfaces");
 		return -1;
 	}
+
+	const char* arrayElement = NULL;
+	while((arrayElement = econfig_array_next(array)) != NULL) {
+		if (index >= MAX_INTERFACES) {
+			report (RPT_ERR, "too many interfaces: max=%i", MAX_INTERFACES);
+			econfig_array_end(array, arrayElement);
+			return -2;
+		}
+
+		debug(RPT_DEBUG, "Label %s count %i", arrayElement, index);	
+
+		char* keyName = calloc(strlen(arrayElement) + 7, sizeof(char));
+		strcpy(keyName, arrayElement);
+		char* keyBaseNameEnd = keyName + strlen(keyName);
+		
+		strncpy(keyBaseNameEnd, "name", 7);
+		iface[iface_count].name = econfig_get_string(config, arrayElement, "");
+		if (iface[iface_count].name == NULL) {
+			report(RPT_CRIT, "malloc failure");
+			econfig_array_end(array, arrayElement);
+			free(keyName);
+			return -2;
+		}
+		if (*iface[iface_count].name == '\0') {
+			free(keyName);
+			break; // stop iteration
+		}
+
+		strncpy(keyBaseNameEnd, "alias", 7);
+		iface[iface_count].alias = econfig_get_string(config, arrayElement, iface[iface_count].name);
+		if (iface[iface_count].alias == NULL) {
+			/*
+				* make alias the same as the interface name in case
+				* strdup() failed
+				*/
+			iface[iface_count].alias = iface[iface_count].name;
+		}
+
+		debug(RPT_DEBUG, "Interface %i: %s alias %s", index, iface[iface_count].name, iface[iface_count].alias);
+		
+		iface_count++;
+	}
+	econfig_array_end(array, arrayElement);
 
 	const char* units[] = { "byte", "bytes", "bit", "bits", "packet", "packets" };
 	long int unit = econfig_get_enum(config, CONFIG_BASE_KEY"/screenmode/iface/unit", -1, 6, units);

@@ -9,18 +9,14 @@
 #ifndef ELEKTRACONFIG_H
 #define ELEKTRACONFIG_H
 
-// TODO (kodebach): why?
-//#ifdef HAVE_CONFIG_H
-//#include "config.h"
-//#endif
+#ifdef HAVE_CONFIG_H
+#include "config.h"
+#endif
 
 #include <elektra/kdb.h>
 #include <stdbool.h>
 
-// TODO (kodebach): documentation, rename
-
-typedef int (*econfig_iterate_callback)(KeySet* config, size_t index, Key* element, void* userdata);
-
+// TODO (kodebach): documentation
 KeySet* econfig_open(const char* baseKeyName);
 void econfig_close(KeySet* config);
 
@@ -35,8 +31,5 @@ long int econfig_get_enum(KeySet* config, const char* keyName, const int default
 KeySet* econfig_array_start(KeySet* config, const char* arrayKeyName, size_t* size_ptr);
 char* econfig_array_next(KeySet* array);
 void econfig_array_end(KeySet* array, char* lastElement);
-
-int econfig_array_iterate(KeySet* config, const char* arrayKeyName, econfig_iterate_callback callback, void* userdata);
-size_t econfig_array_size(KeySet* config, const char* arrayKeyName);
 
 #endif

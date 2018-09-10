@@ -485,7 +485,6 @@ process_kdb(char *configfile)
 	}
 
 
-	// TODO (kodebach): docu
 	/* Read drivers */
 
 	 /* If drivers have been specified on the command line, then do not
@@ -493,33 +492,25 @@ process_kdb(char *configfile)
 	 */
 	if (num_drivers == 0) {
 		/* loop over all the Driver= directives to read the driver names */
-		num_drivers = econfig_array_size(config, CONFIG_BASE_KEY"/general/driver");
+		size_t driverCount;
+		KeySet* array = econfig_array_start(config, CONFIG_BASE_KEY"/general/driver", &driverCount);
+		
+		if (array != NULL) {
+			num_drivers = (int) driverCount;
 
-		if (num_drivers > 0) {
-			Key* driverKey = ksLookupByName(config, CONFIG_BASE_KEY"/general/driver", 0);
-
-			keyAddBaseName(driverKey, "#0");
-			drivernames[0] = econfig_get_string(config, keyName(driverKey), NULL);
-			
-			if (drivernames[0] == NULL) {
-				report(RPT_ERR, "error reading driver name from key: %s", driverKey);
-				exit(EXIT_FAILURE);
-			}
-
-			char nameBuf[32];
-			for(size_t i = 1; i < num_drivers; i++)
-			{
-				snprintf(nameBuf, 31, "#%li", i);
-				keySetBaseName(driverKey, nameBuf);
-				drivernames[i] = econfig_get_string(config, keyName(driverKey), NULL);
+			const char* arrayElement = NULL;
+			int i = 0;
+			while((arrayElement = econfig_array_next(array)) != NULL) {
+				drivernames[i] = econfig_get_string(config, arrayElement, NULL);
 
 				if (drivernames[i] == NULL) {
-					report(RPT_ERR, "error reading driver name from key: %s", driverKey);
+					report(RPT_ERR, "error reading driver name from key: %s", arrayElement);
+					econfig_array_end(array, arrayElement);
 					exit(EXIT_FAILURE);
 				}
+				i++;
 			}
-
-			keyDel(driverKey);		
+			econfig_array_end(array, arrayElement);
 		}
 	}
 
