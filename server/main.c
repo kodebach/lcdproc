@@ -91,8 +91,6 @@
 #define DEFAULT_TITLESPEED		TITLESPEED_MAX
 #define DEFAULT_AUTOROTATE		AUTOROTATE_ON
 
-#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
-
 /* Socket to bind to...
 
    Using loopback is much more secure; it means that this port is

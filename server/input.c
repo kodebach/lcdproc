@@ -30,8 +30,7 @@
 #include "menuscreens.h"
 #include "input.h"
 #include "render.h" /* For server_msg* */
-
-#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
+#include "main.h"
 
 LinkedList *keylist;
 char *toggle_rotate_key;

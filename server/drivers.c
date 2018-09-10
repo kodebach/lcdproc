@@ -26,14 +26,12 @@
 #include "driver.h"
 #include "drivers.h"
 #include "widget.h"
-
+#include "main.h"
 
 LinkedList *loaded_drivers = NULL;		/**< list of loaded drivers */
 DisplayProps *display_props = NULL;		/**< properties of the display */
 
 #define ForAllDrivers(drv) for (drv = LL_GetFirst(loaded_drivers); drv; drv = LL_GetNext(loaded_drivers))
-
-#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 /**
  * Load driver based on "DriverPath" config setting and section name or

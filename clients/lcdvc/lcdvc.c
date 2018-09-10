@@ -42,7 +42,7 @@
 #define DEFAULT_CONFIGFILE	SYSCONFDIR "/lcdvc.conf"
 #define DEFAULT_PIDFILE		PIDFILEDIR "/lcdvc.pid"
 
-#define CONFIG_BASE_KEY		"/sw/lcdproc/client/#0/current/lcdvc"
+#define CONFIG_BASE_KEY		"/sw/lcdproc/lcdvc/#0/current"
 
 char *help_text =
 "lcdvc - LCDproc virtual console\n"

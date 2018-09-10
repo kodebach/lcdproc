@@ -97,21 +97,21 @@ ScreenMode sequence[] =
 {
 	/* flags default ACTIVE will run by default */
 	/* longname    which on  off inv  timer   flags */
-	{ "CPU",       'C',   1,    2, 0, 0xffff, ACTIVE, cpu_screen        },	// [C]PU
-	{ "Iface",     'I',   1,    2, 0, 0xffff, 0,      iface_screen      }, 	// [I]face
-	{ "Memory",    'M',   4,   16, 0, 0xffff, ACTIVE, mem_screen        },	// [M]emory
-	{ "Load",      'L',  64,  128, 1, 0xffff, ACTIVE, xload_screen      },	// [L]oad (load histogram)
-	{ "TimeDate",  'T',   4,   64, 0, 0xffff, ACTIVE, time_screen       },	// [T]ime/Date
-	{ "About",     'A', 999, 9999, 0, 0xffff, ACTIVE, credit_screen     },	// [A]bout (credits)
-	{ "SMP-CPU",   'P',   1,    2, 0, 0xffff, 0,      cpu_smp_screen    },	// CPU_SM[P]
-	{ "OldTime",   'O',   4,   64, 0, 0xffff, 0,      clock_screen      },	// [O]ld Timescreen
-	{ "BigClock",  'K',   4,   64, 0, 0xffff, 0,      big_clock_screen  },	// big cloc[K]
-	{ "Uptime",    'U',   4,  128, 0, 0xffff, 0,      uptime_screen     },	// Old [U]ptime Screen
-	{ "Battery",   'B',  32,  256, 1, 0xffff, 0,      battery_screen    },	// [B]attery Status
-	{ "CPUGraph",  'G',   1,    2, 0, 0xffff, 0,      cpu_graph_screen  },	// CPU histogram [G]raph
-	{ "ProcSize",  'S',  16,  256, 1, 0xffff, 0,      mem_top_screen    },	// [S]ize of biggest processes
-	{ "Disk",      'D', 256,  256, 1, 0xffff, 0,      disk_screen       },	// [D]isk stats
-	{ "MiniClock", 'N',   4,   64, 0, 0xffff, 0,      mini_clock_screen },	// Mi[n]i clock
+	{ "CPU",       'C', "cpu",	      1,    2, 0, 0xffff, ACTIVE, cpu_screen        },	// [C]PU
+	{ "Iface",     'I', "ifcace",     1,    2, 0, 0xffff, 0,      iface_screen      }, 	// [I]face
+	{ "Memory",    'M', "memory",     4,   16, 0, 0xffff, ACTIVE, mem_screen        },	// [M]emory
+	{ "Load",      'L', "load",      64,  128, 1, 0xffff, ACTIVE, xload_screen      },	// [L]oad (load histogram)
+	{ "TimeDate",  'T', "timedate",   4,   64, 0, 0xffff, ACTIVE, time_screen       },	// [T]ime/Date
+	{ "About",     'A', "about",    999, 9999, 0, 0xffff, ACTIVE, credit_screen     },	// [A]bout (credits)
+	{ "SMP-CPU",   'P', "smpcpu",     1,    2, 0, 0xffff, 0,      cpu_smp_screen    },	// CPU_SM[P]
+	{ "OldTime",   'O', "oldtime",    4,   64, 0, 0xffff, 0,      clock_screen      },	// [O]ld Timescreen
+	{ "BigClock",  'K', "bigclock",   4,   64, 0, 0xffff, 0,      big_clock_screen  },	// big cloc[K]
+	{ "Uptime",    'U', "uptime",     4,  128, 0, 0xffff, 0,      uptime_screen     },	// Old [U]ptime Screen
+	{ "Battery",   'B', "battery",   32,  256, 1, 0xffff, 0,      battery_screen    },	// [B]attery Status
+	{ "CPUGraph",  'G', "cpugraph",   1,    2, 0, 0xffff, 0,      cpu_graph_screen  },	// CPU histogram [G]raph
+	{ "ProcSize",  'S', "procsize",  16,  256, 1, 0xffff, 0,      mem_top_screen    },	// [S]ize of biggest processes
+	{ "Disk",      'D', "disk",     256,  256, 1, 0xffff, 0,      disk_screen       },	// [D]isk stats
+	{ "MiniClock", 'N', "miniclock",  4,   64, 0, 0xffff, 0,      mini_clock_screen },	// Mi[n]i clock
 	{  NULL, 0, 0, 0, 0, 0, 0, NULL},			  	// No more..  all done.
 };
 
@@ -442,11 +442,11 @@ process_configfile(char *configfile)
 	 * check for config file variables to override all the sequence
 	 * defaults
 	 */
-	Key* nameKey = keyNew(CONFIG_BASE_KEY"/sequence", KEY_END); // only used for string manipulation
+	Key* nameKey = keyNew(CONFIG_BASE_KEY"/screenmode", KEY_END); // only used for string manipulation
 	keyAddBaseName(nameKey, "(longname)");
 	for (int k = 0; sequence[k].which != 0; k++) {
-		if (sequence[k].longname != NULL) {
-			keySetBaseName(nameKey, sequence[k].longname);
+		if (sequence[k].configname != NULL) {
+			keySetBaseName(nameKey, sequence[k].configname);
 
 			keyAddBaseName(nameKey, "ontime");
 			sequence[k].on_time = econfig_get_long(config, keyName(nameKey), sequence[k].on_time);

@@ -17,6 +17,8 @@
 # include "config.h"
 #endif
 
+#define CONFIG_BASE_KEY		"/sw/lcdproc/lcdd/#0/current"
+
 /*
   contains a few things that other parts of the program might want
   to know about...

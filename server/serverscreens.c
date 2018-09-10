@@ -39,8 +39,6 @@
 #include "main.h"
 #include "serverscreens.h"
 
-#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
-
 /* global variables */
 Screen *server_screen = NULL;
 int rotate_server_screen = UNSET_INT;

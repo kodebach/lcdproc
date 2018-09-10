@@ -33,8 +33,6 @@
 #include "drivers/lcd.h"
 /* lcd.h is used for the driver API definition */
 
-#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
-
 
 /** property / method symbols in a Driver structure */
 typedef struct driver_symbols {

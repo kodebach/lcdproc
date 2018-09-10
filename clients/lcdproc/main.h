@@ -15,7 +15,7 @@
 #include "shared/defines.h"
 #include "shared/elektraconfig.h"
 
-#define CONFIG_BASE_KEY		"/sw/lcdproc/client/#0/current/lcdproc"
+#define CONFIG_BASE_KEY		"/sw/lcdproc/lcdproc/#0/current"
 
 #ifndef TRUE
 # define TRUE    1
@@ -51,6 +51,7 @@ typedef struct _screen_mode
 {
 	char *longname;		/**< Which screen is it (long name)? */
 	char which;		/**< Which screen is it (short name)? */
+	char *configname;		/**< Which screen is it (long name)? */
 	int on_time;		/**< How often to update while visible? */
 	int off_time;		/**< How often to get stats while not visible? */
 	int show_invisible;	/**< Send stats while not visible? */

@@ -34,6 +34,7 @@
 #include "input.h"
 #include "driver.h"
 #include "drivers.h"
+#include "main.h"
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -41,8 +42,6 @@
 
 /* Next include files are needed for settings that we can modify */
 #include "render.h"
-
-#define CONFIG_BASE_KEY		"/sw/lcdproc/server/#0/current/lcdd"
 
 char *menu_key;
 char *enter_key;

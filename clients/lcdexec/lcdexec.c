@@ -115,7 +115,7 @@ static int main_loop(void);
 #define CHAIN(e,f) { if (e>=0) { e=(f); }}
 #define CHAIN_END(e) { if (e<0) { report(RPT_CRIT,"Critical error, abort"); exit(e); }}
 
-#define CONFIG_BASE_KEY "/sw/lcdproc/client/#0/current/lcdexec"
+#define CONFIG_BASE_KEY "/sw/lcdproc/lcdexec/#0/current"
 
 int main(int argc, char **argv)
 {
