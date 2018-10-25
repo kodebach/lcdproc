@@ -5,7 +5,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
-#include <kdbease.h>
+#include <elektra/kdbease.h>
 #include <elektra/kdb.h>
 
 Config* econfig_open(const char* baseKeyName)
@@ -37,7 +37,6 @@ bool econfig_exists(Config* config, const char* keyName)
 	Key* key = ksLookupByName(config, keyName, 0);
 
 	if (key == NULL) {
-		keyDel(key);
 		return false;
 	}
 

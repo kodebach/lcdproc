@@ -8,7 +8,7 @@
 void lib_hbar_static (Driver *drvthis, int x, int y, int len, int promille, int options, int cellwidth, int cc_offset);
 void lib_vbar_static (Driver *drvthis, int x, int y, int len, int promille, int options, int cellheight, int cc_offset);
 
-int config_array_index (char* dest, int index);
+int config_array_index_underscores (char* dest, int index);
 
 #endif
 

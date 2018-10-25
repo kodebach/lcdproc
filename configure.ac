@@ -83,10 +83,11 @@ AX_CFLAGS_GCC_OPTION(-ftrampolines)
 export CFLAGS
 
 dnl elektra
+CFLAGS="$CFLAGS -Ielektra"
 AC_CHECK_LIB([elektra],[kdbOpen],,[AC_MSG_ERROR(elektra missing)])
-AC_CHECK_HEADERS(kdb.h)
+AC_CHECK_HEADER([elektra/kdb.h],[],[AC_MSG_ERROR(cannot find kdb.h)])
 AC_CHECK_LIB([elektra-ease],[elektraArrayGet],,[AC_MSG_ERROR(elektra-ease missing)])
-AC_CHECK_HEADERS(kdbease.h)
+AC_CHECK_HEADER([elektra/kdbease.h],[],[AC_MSG_ERROR(cannot find kdbease.h)])
 
 dnl Solaris
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])

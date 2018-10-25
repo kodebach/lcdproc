@@ -123,7 +123,7 @@ linuxInput_init (Driver *drvthis)
 	i = 0;
 	while(1) {
 		char underscores[10];
-		config_array_index(underscores, i);
+		config_array_index_underscores(underscores, i);
 
 		snprintf(buf, 10, "key/#%s%d", underscores, i);
 		s = drvthis->config_get_string(drvthis, buf, NULL);

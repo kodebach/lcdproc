@@ -492,13 +492,13 @@ process_kdb(char *configfile)
 	 */
 	if (num_drivers == 0) {
 		/* loop over all the Driver= directives to read the driver names */
-		size_t driverCount;
+		int driverCount;
 		Config* array = econfig_array_start(config, CONFIG_BASE_KEY"/server/driver", &driverCount);
 		
 		if (array != NULL) {
 			num_drivers = (int) driverCount;
 
-			const char* arrayElement = NULL;
+			char* arrayElement = NULL;
 			int i = 0;
 			while((arrayElement = econfig_array_next(array)) != NULL) {
 				char* driverRef = econfig_get_string(config, arrayElement, NULL);

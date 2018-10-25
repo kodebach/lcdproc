@@ -6,6 +6,8 @@
  */
 
 #include "lcd.h"
+#include <stdio.h>
+#include <string.h>
 
 #ifdef HAVE_CONFIG_H
 # include "config.h"
@@ -80,9 +82,9 @@ lib_vbar_static (Driver *drvthis, int x, int y, int len, int promille, int optio
 	}
 }
 
-int config_array_index(char* dest, int index) {
+int config_array_index_underscores(char* dest, int index) {
 	char index_str[11];
-	snprintf(index_str, 10, index);
+	snprintf(index_str, 10, "%d", index);
 
 	int i = 0;
 	for(; i < strlen(index_str); i++) { 

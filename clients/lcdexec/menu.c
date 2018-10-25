@@ -28,21 +28,171 @@
 static char *boolValueName[] = { "false", "true" };
 static char *triGrayValueName[] = { "off", "on", "gray" };
 
-/* types for command parameters */
-static const char* paramTypes[] = {"slider", "ring", "numeric", "alpha", "ip", "checkbox"};
-
 static int id = 0;
 
 MenuEntry* param_read(Config* config, const char* element);
 MenuEntry* command_read(Config* config, const char* element);
 MenuEntry* menu_read(Config* config, const char* element);
 
+static void param_read_slider(MenuEntry* param, Config* config, const char* paramName)
+{
+	param->type = MT_ARG_SLIDER;
+
+	char* keyName = calloc(strlen(paramName) + 10, sizeof(char));
+	strcpy(keyName, paramName);
+	char* keyBaseNameEnd = keyName + strlen(keyName);
+	
+	strncpy(keyBaseNameEnd, "/value", 10);
+	param->data.slider.value = econfig_get_long(config, keyName, 0);
+
+	strncpy(keyBaseNameEnd, "/minvalue", 10);			
+	param->data.slider.minval = econfig_get_long(config, keyName, 0);
+
+	strncpy(keyBaseNameEnd, "/maxvalue", 10);			
+	param->data.slider.maxval = econfig_get_long(config, keyName, 1000);
+
+	char buf[35];
+	snprintf(buf, 34, "%d", param->data.slider.minval);
+	strncpy(keyBaseNameEnd, "/mintext", 10);
+	param->data.slider.mintext = econfig_get_string(config, keyName, buf);
+
+	snprintf(buf, 34, "%d", param->data.slider.maxval);
+	strncpy(keyBaseNameEnd, "/maxtext", 10);			
+	param->data.slider.maxtext = econfig_get_string(config, keyName, buf);
+
+	strncpy(keyBaseNameEnd, "/stepsize", 10);			
+	param->data.slider.stepsize = econfig_get_long(config, keyName, 1);
+	free(keyName);
+}
+
+static void param_read_ring(MenuEntry* param, Config* config, const char* paramName)
+{
+	param->type = MT_ARG_RING;
+
+	char* keyName = calloc(strlen(paramName) + 8, sizeof(char));
+	strcpy(keyName, paramName);
+	char* keyBaseNameEnd = keyName + strlen(keyName);
+
+	strncpy(keyBaseNameEnd, "/value", 8);
+	param->data.ring.value = econfig_get_long(config, keyName, 0);
+	
+	strncpy(keyBaseNameEnd, "/string", 8);
+	int numStrings;
+	Config* stringsArray = econfig_array_start(config, keyName, &numStrings);
+	if(stringsArray == NULL) {
+		free(keyName);
+		param->data.ring.strings = calloc(1, sizeof(char *));
+		param->data.ring.strings[0] = NULL;
+		return;
+	}
+
+	param->data.ring.strings = calloc(numStrings+1, sizeof(char *));
+	param->data.ring.strings[numStrings] = NULL;
+
+	size_t i = 0;
+	char* elementName = NULL;
+	while((elementName = econfig_array_next(stringsArray)) != NULL) 
+	{
+		param->data.ring.strings[i] = econfig_get_string(config, elementName, NULL);
+		i++;
+	}
+	econfig_array_end(stringsArray, elementName);
+	free(keyName);
+}
+
+static void param_read_numeric(MenuEntry* param, Config* config, const char* paramName)
+{
+	param->type = MT_ARG_NUMERIC;
+
+	char* keyName = calloc(strlen(paramName) + 10, sizeof(char));
+	strcpy(keyName, paramName);
+	char* keyBaseNameEnd = keyName + strlen(keyName);
+
+	strncpy(keyBaseNameEnd, "/value", 10);
+	param->data.numeric.value = econfig_get_long(config, keyName, 0);
+
+	strncpy(keyBaseNameEnd, "/minvalue", 10);			
+	param->data.numeric.minval = econfig_get_long(config, keyName, 0);
+
+	strncpy(keyBaseNameEnd, "/maxvalue", 10);			
+	param->data.numeric.minval = econfig_get_long(config, keyName, 1000);
+	free(keyName);
+}
+
+static void param_read_alpha(MenuEntry* param, Config* config, const char* paramName)
+{
+	param->type = MT_ARG_ALPHA;
+
+	char* keyName = calloc(strlen(paramName) + 14, sizeof(char));
+	strcpy(keyName, paramName);
+	char* keyBaseNameEnd = keyName + strlen(keyName);
+
+	strncpy(keyBaseNameEnd, "/value", 14);
+	param->data.alpha.value = econfig_get_string(config, keyName, "");
+	
+	strncpy(keyBaseNameEnd, "/minlength", 14);
+	param->data.alpha.minlen = econfig_get_long(config, keyName, 0);
+
+	strncpy(keyBaseNameEnd, "/maxlength", 14);
+	param->data.alpha.maxlen = econfig_get_long(config, keyName, 100);
+
+	strncpy(keyBaseNameEnd, "/allowedchars", 14);
+	param->data.alpha.allowed = econfig_get_string(config, keyName, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
+	free(keyName);
+}
+
+static void param_read_ip(MenuEntry* param, Config* config, const char* paramName)
+{
+	param->type = MT_ARG_IP;
+
+	char* keyName = calloc(strlen(paramName) + 7, sizeof(char));
+	strcpy(keyName, paramName);
+	char* keyBaseNameEnd = keyName + strlen(keyName);
+
+	strncpy(keyBaseNameEnd, "/value", 7);
+	param->data.ip.value = econfig_get_string(config, keyName, "");
+	
+	strncpy(keyBaseNameEnd, "/v6", 7);
+	param->data.ip.v6 = econfig_get_bool(config, keyName, false);
+	free(keyName);
+}
+
+static void param_read_checkbox(MenuEntry* param, Config* config, const char* paramName)
+{
+	param->type = MT_ARG_CHECKBOX;
+
+	char* keyName = calloc(strlen(paramName) + 11, sizeof(char));
+	strcpy(keyName, paramName);
+	char* keyBaseNameEnd = keyName + strlen(keyName);
+
+	strncpy(keyBaseNameEnd, "/allowgray", 11);
+	param->data.checkbox.allow_gray = econfig_get_bool(config, keyName, false);
+
+	strncpy(keyBaseNameEnd, "/value", 11);
+	const char* values[] = {"off", "on", "gray"};
+	param->data.checkbox.value = econfig_get_enum(config, keyName, 0, 3, values);
+
+	if(!param->data.checkbox.allow_gray && param->data.checkbox.value == 2) {
+		param->data.checkbox.value = 0;
+	}
+
+	// get replacement strings for different values
+	strncpy(keyBaseNameEnd, "/offtext", 11);
+	param->data.checkbox.map[0] = econfig_get_string(config, keyName, NULL);
+
+	strncpy(keyBaseNameEnd, "/ontext", 11);
+	param->data.checkbox.map[1] = econfig_get_string(config, keyName, NULL);
+
+	strncpy(keyBaseNameEnd, "/graytext", 11);
+	param->data.checkbox.map[2] = econfig_get_string(config, keyName, NULL);
+	free(keyName);
+}
+
 
 MenuEntry* param_read(Config* config, const char* paramName)
 {
-	char* dupName = strdup(paramName);
 	char* type = strrchr(paramName, '/');
-	if(type == dupName) {
+	if(type == paramName) {
 		return NULL;
 	}
 	*type = '\0';
@@ -55,166 +205,23 @@ MenuEntry* param_read(Config* config, const char* paramName)
 
 	param->id = id++;
 	param->name = strdup(strrchr(paramName, '/') + 1);
-
-	long int typeId = -1;
-	for(size_t i = 0; i < 6; i++)
-	{
-		if(strcasecmp(paramTypes[i], type) == 0) {
-			typeId = i;
-			break;
-		}
-	}
-	free(dupName);
 	
-	char* keyName;
-	char* keyBaseNameEnd;
-	switch(typeId) {
-		case 0: // slider
-			param->type = MT_ARG_SLIDER;
-
-			keyName = calloc(strlen(paramName) + 10, sizeof(char));
-			strcpy(keyName, paramName);
-			keyBaseNameEnd = keyName + strlen(keyName);
-			
-			strncpy(keyBaseNameEnd, "/value", 10);
-			param->data.slider.value = econfig_get_long(config, keyName, 0);
-
-			strncpy(keyBaseNameEnd, "/minvalue", 10);			
-			param->data.slider.minval = econfig_get_long(config, keyName, 0);
-
-			strncpy(keyBaseNameEnd, "/maxvalue", 10);			
-			param->data.slider.maxval = econfig_get_long(config, keyName, 1000);
-
-			char buf[35];
-			snprintf(buf, 34, "%d", param->data.slider.minval);
-			strncpy(keyBaseNameEnd, "/mintext", 10);
-			param->data.slider.mintext = econfig_get_string(config, keyName, buf);
-
-			snprintf(buf, 34, "%d", param->data.slider.maxval);
-			strncpy(keyBaseNameEnd, "/maxtext", 10);			
-			param->data.slider.maxtext = econfig_get_string(config, keyName, buf);
-
-			strncpy(keyBaseNameEnd, "/stepsize", 10);			
-			param->data.slider.stepsize = econfig_get_long(config, keyName, 1);
-			free(keyName);
-			break;
-		case 1: // ring
-			param->type = MT_ARG_RING;
-
-			keyName = calloc(strlen(paramName) + 8, sizeof(char));
-			strcpy(keyName, paramName);
-			keyBaseNameEnd = keyName + strlen(keyName);
-
-			strncpy(keyBaseNameEnd, "/value", 8);
-			param->data.ring.value = econfig_get_long(config, keyName, 0);
-			
-			strncpy(keyBaseNameEnd, "/string", 8);
-			size_t numStrings;
-			Config* stringsArray = econfig_array_start(config, keyName, &numStrings);
-			if(stringsArray == NULL) {
-				free(keyName);
-				param->data.ring.strings = calloc(1, sizeof(char *));
-				param->data.ring.strings[0] = NULL;
-				break;
-			}
-
-			param->data.ring.strings = calloc(numStrings+1, sizeof(char *));
-			param->data.ring.strings[numStrings] = NULL;
-
-			size_t i = 0;
-			char* elementName = NULL;
-			while((elementName = econfig_array_next(stringsArray)) != NULL) 
-			{
-				param->data.ring.strings[i] = econfig_get_string(config, elementName, NULL);
-				i++;
-			}
-			econfig_array_end(stringsArray, elementName);
-			free(keyName);
-			break;
-		case 2: // numeric
-			param->type = MT_ARG_NUMERIC;
-
-			keyName = calloc(strlen(paramName) + 10, sizeof(char));
-			strcpy(keyName, paramName);
-			keyBaseNameEnd = keyName + strlen(keyName);
-
-			strncpy(keyBaseNameEnd, "/value", 10);
-			param->data.numeric.value = econfig_get_long(config, keyName, 0);
-
-			strncpy(keyBaseNameEnd, "/minvalue", 10);			
-			param->data.numeric.minval = econfig_get_long(config, keyName, 0);
-
-			strncpy(keyBaseNameEnd, "/maxvalue", 10);			
-			param->data.numeric.minval = econfig_get_long(config, keyName, 1000);
-			free(keyName);
-			break;
-		case 3: // alpha
-			param->type = MT_ARG_ALPHA;
-
-			keyName = calloc(strlen(paramName) + 14, sizeof(char));
-			strcpy(keyName, paramName);
-			keyBaseNameEnd = keyName + strlen(keyName);
-
-			strncpy(keyBaseNameEnd, "/value", 14);
-			param->data.alpha.value = econfig_get_string(config, keyName, "");
-			
-			strncpy(keyBaseNameEnd, "/minlength", 14);
-			param->data.alpha.minlen = econfig_get_long(config, keyName, 0);
-
-			strncpy(keyBaseNameEnd, "/maxlength", 14);
-			param->data.alpha.maxlen = econfig_get_long(config, keyName, 100);
-
-			strncpy(keyBaseNameEnd, "/allowedchars", 14);
-			param->data.alpha.allowed = econfig_get_string(config, keyName, "ABCDEFGHIJKLMNOPQRSTUVWXYZ");
-			free(keyName);
-			break;
-		case 4: // ip
-			param->type = MT_ARG_IP;
-
-			keyName = calloc(strlen(paramName) + 7, sizeof(char));
-			strcpy(keyName, paramName);
-			keyBaseNameEnd = keyName + strlen(keyName);
-
-			strncpy(keyBaseNameEnd, "/value", 7);
-			param->data.ip.value = econfig_get_string(config, keyName, "");
-			
-			strncpy(keyBaseNameEnd, "/v6", 7);
-			param->data.ip.v6 = econfig_get_bool(config, keyName, false);
-			free(keyName);
-			break;
-		case 5: // checkbox
-			param->type = MT_ARG_CHECKBOX;
-
-			keyName = calloc(strlen(paramName) + 11, sizeof(char));
-			strcpy(keyName, paramName);
-			keyBaseNameEnd = keyName + strlen(keyName);
-
-			strncpy(keyBaseNameEnd, "/allowgray", 11);
-			param->data.checkbox.allow_gray = econfig_get_bool(config, keyName, false);
-
-			strncpy(keyBaseNameEnd, "/value", 11);
-			const char* values[] = {"off", "on", "gray"};
-			param->data.checkbox.value = econfig_get_enum(config, keyName, 0, 3, values);
-
-			if(!param->data.checkbox.allow_gray && param->data.checkbox.value == 2) {
-				param->data.checkbox.value = 0;
-			}
-
-			// get replacement strings for different values
-			strncpy(keyBaseNameEnd, "/offtext", 11);
-			param->data.checkbox.map[0] = econfig_get_string(config, keyName, NULL);
-
-			strncpy(keyBaseNameEnd, "/ontext", 11);
-			param->data.checkbox.map[1] = econfig_get_string(config, keyName, NULL);
-
-			strncpy(keyBaseNameEnd, "/graytext", 11);
-			param->data.checkbox.map[2] = econfig_get_string(config, keyName, NULL);
-			free(keyName);
-			break;
-		default:
-			report(RPT_DEBUG, "illegal parameter type");
-			menu_free(param);
-			return NULL;
+	if(strcasecmp(type, "slider") == 0) {
+		param_read_slider(param, config, paramName);
+	} else if(strcasecmp(type, "ring") == 0) {
+		param_read_ring(param, config, paramName);
+	} else if(strcasecmp(type, "numeric") == 0) {
+		param_read_numeric(param, config, paramName);
+	} else if(strcasecmp(type, "alpha") == 0) {
+		param_read_alpha(param, config, paramName);
+	} else if(strcasecmp(type, "ip") == 0) {
+		param_read_ip(param, config, paramName);
+	} else if(strcasecmp(type, "checkbox") == 0) {
+		param_read_checkbox(param, config, paramName);
+	} else {
+		report(RPT_DEBUG, "illegal parameter type");
+		menu_free(param);
+		return NULL;
 	}
 
 	return param;
@@ -234,7 +241,7 @@ MenuEntry* command_read(Config* config, const char* commandName)
 	// slash + longest subkey (param + elektra array key) + \0
 	char* keyName = calloc(strlen(commandName) + 1 + (5 + 1 + 20) + 1 , sizeof(char));
 	strcpy(keyName, commandName);
-	const char* keyBaseNameEnd = keyName + strlen(keyName);
+	char* keyBaseNameEnd = keyName + strlen(keyName);
 	
 	strncpy(keyBaseNameEnd, "/exec", 13);
 	char* exec = econfig_get_string(config, keyName, NULL);
@@ -320,36 +327,6 @@ MenuEntry* command_read(Config* config, const char* commandName)
 	return command;
 }
 
-MenuEntry* menu_read(Config* config, const char* menuName)
-{
-	MenuEntry* menu = calloc(1, sizeof(MenuEntry));
-	if(menu == NULL) {
-		return NULL;
-	}
-
-	menu->type = MT_MENU;
-	menu->id = id++;
-	menu->name = strdup(strrchr(menuName, '/') + 1);
-
-	char* keyName = calloc(strlen(menuName) + 1 + 11 + 1, sizeof(char));
-	strcpy(keyName, menuName);
-	strcat(keyName, "/displayname");
-	
-	menu->displayname = econfig_get_string(config, keyName, NULL);
-	free(keyName);
-
-	if (menu->displayname == NULL) {
-		menu->displayname = strdup(menu->name);
-	}
-
-	if(menu_read_entries(config, menu, menuName) != 0) {
-		menu_free(menu);
-		menu = NULL;
-	}
-
-	return menu;
-}
-
 int menu_read_entries(Config* config, MenuEntry* menu, const char* menuName) {
 	// length of name, /, entry, /, elektra array key, \0
 	char* entryArrayName = calloc(strlen(menuName) + 1 + 5 + 1 + 20 + 1, sizeof(char));
@@ -395,6 +372,36 @@ int menu_read_entries(Config* config, MenuEntry* menu, const char* menuName) {
 	econfig_array_end(array, entry);
 
 	return 0;
+}
+
+MenuEntry* menu_read(Config* config, const char* menuName)
+{
+	MenuEntry* menu = calloc(1, sizeof(MenuEntry));
+	if(menu == NULL) {
+		return NULL;
+	}
+
+	menu->type = MT_MENU;
+	menu->id = id++;
+	menu->name = strdup(strrchr(menuName, '/') + 1);
+
+	char* keyName = calloc(strlen(menuName) + 1 + 11 + 1, sizeof(char));
+	strcpy(keyName, menuName);
+	strcat(keyName, "/displayname");
+	
+	menu->displayname = econfig_get_string(config, keyName, NULL);
+	free(keyName);
+
+	if (menu->displayname == NULL) {
+		menu->displayname = strdup(menu->name);
+	}
+
+	if(menu_read_entries(config, menu, menuName) != 0) {
+		menu_free(menu);
+		menu = NULL;
+	}
+
+	return menu;
 }
 
 MenuEntry* main_menu_read(Config* config, const char *name)

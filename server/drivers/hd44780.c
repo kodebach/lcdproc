@@ -191,7 +191,7 @@ static int get_config_backlight_type(Driver *drvthis)
 			def_value = "none";
 		
 		char underscores[10];
-		config_array_index(underscores, opt_idx);
+		config_array_index_underscores(underscores, opt_idx);
 
 		snprintf(buf, 30, "backlight/#%s%d", underscores, opt_idx);
 		value = drvthis->config_get_string(drvthis, buf, def_value);

@@ -112,7 +112,7 @@ ScreenMode sequence[] =
 	{ "ProcSize",  'S', "procsize",  16,  256, 1, 0xffff, 0,      mem_top_screen    },	// [S]ize of biggest processes
 	{ "Disk",      'D', "disk",     256,  256, 1, 0xffff, 0,      disk_screen       },	// [D]isk stats
 	{ "MiniClock", 'N', "miniclock",  4,   64, 0, 0xffff, 0,      mini_clock_screen },	// Mi[n]i clock
-	{  NULL, 0, 0, 0, 0, 0, 0, NULL},			  	// No more..  all done.
+	{  NULL, 0, 0, 0, 0, 0, 0, 0},			  	// No more..  all done.
 };
 
 
@@ -453,16 +453,16 @@ process_configfile(char *configfile)
 		char* screenmodeBaseNameEnd = screenmodeName + strlen(screenmodeName);
 
 		if (sequence[k].configname != NULL) {
-			strncpy(screenmodeName, "/ontime", 15);
+			strncpy(screenmodeBaseNameEnd, "/ontime", 15);
 			sequence[k].on_time = econfig_get_long(config, screenmodeName, sequence[k].on_time);
 
-			strncpy(screenmodeName, "/offtime", 15);
+			strncpy(screenmodeBaseNameEnd, "/offtime", 15);
 			sequence[k].off_time = econfig_get_long(config, screenmodeName, sequence[k].off_time);
 
-			strncpy(screenmodeName, "/showinvisible", 15);
+			strncpy(screenmodeBaseNameEnd, "/showinvisible", 15);
 			sequence[k].show_invisible = econfig_get_bool(config, screenmodeName, sequence[k].show_invisible);
 
-			strncpy(screenmodeName, "/active", 15);
+			strncpy(screenmodeBaseNameEnd, "/active", 15);
 			if (econfig_get_bool(config, screenmodeName, sequence[k].flags & ACTIVE)) {
 				sequence[k].flags |= ACTIVE;
 			}

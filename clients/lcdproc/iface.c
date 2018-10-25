@@ -51,15 +51,15 @@ iface_read_config(Config* config)
 		return -1;
 	}
 
-	const char* arrayElement = NULL;
+	char* arrayElement = NULL;
 	while((arrayElement = econfig_array_next(array)) != NULL) {
-		if (index >= MAX_INTERFACES) {
+		if (iface_count >= MAX_INTERFACES) {
 			report (RPT_ERR, "too many interfaces: max=%i", MAX_INTERFACES);
 			econfig_array_end(array, arrayElement);
 			return -2;
 		}
 
-		debug(RPT_DEBUG, "Label %s count %i", arrayElement, index);	
+		debug(RPT_DEBUG, "Label %s count %i", arrayElement, iface_count);	
 
 		char* keyName = calloc(strlen(arrayElement) + 7, sizeof(char));
 		strcpy(keyName, arrayElement);
@@ -88,7 +88,7 @@ iface_read_config(Config* config)
 			iface[iface_count].alias = iface[iface_count].name;
 		}
 
-		debug(RPT_DEBUG, "Interface %i: %s alias %s", index, iface[iface_count].name, iface[iface_count].alias);
+		debug(RPT_DEBUG, "Interface %i: %s alias %s", iface_count, iface[iface_count].name, iface[iface_count].alias);
 		
 		iface_count++;
 	}
