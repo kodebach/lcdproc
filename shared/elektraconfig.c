@@ -51,7 +51,6 @@ char* econfig_get_string(Config* config, const char* keyName, char* default_valu
 	Key* key = ksLookupByName(config, keyName, 0);
 
 	if (key == NULL) {
-		keyDel(key);
 		return default_value == NULL ? NULL : strdup(default_value);
 	}
 
@@ -65,7 +64,6 @@ long int econfig_get_long(Config* config, const char* keyName, const long int de
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
-		keyDel(key);
 		return default_value;
 	}
 
@@ -87,7 +85,6 @@ bool econfig_get_bool(Config* config, const char* keyName, const bool default_va
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
-		keyDel(key);
 		return default_value;
 	}
 
@@ -113,7 +110,6 @@ double econfig_get_double(Config* config, const char* keyName, const double defa
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
-		keyDel(key);
 		return default_value;
 	}
 
@@ -135,7 +131,6 @@ long int econfig_get_enum(Config* config, const char* keyName, const int default
 {
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
-		keyDel(key);
 		return default_value;
 	}
 
