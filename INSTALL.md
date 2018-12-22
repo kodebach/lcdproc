@@ -1,3 +1,47 @@
+# Elektra Low-Level Setup
+
+To setup the Elektra low-level version of LCDproc follow these steps:
+
+* Build and install LCDproc using the instructions below.
+  * The easiest way to get started is to run:
+    ```sh
+    sh ./autogen.sh
+    ./configure --enable-drivers=all
+    make
+    sudo make install
+    ```
+    This installs the server into the folder `/usr/local/sbin`, the clients into `/usr/local/bin`
+    and the drivers into `/usr/local/lib/lcdproc`. If you wish to change these directories take a
+    look at the [automake manual](https://www.gnu.org/software/automake/manual/html_node/Standard-Directory-Variables.html).
+* Install a current version of Elektra (either from built from source yourself or from a package
+  repository)
+* Obtain specification files for LCDd and any client you want to run.
+* Mount the specification file into your kdb.
+  ```sh
+  kdb mount LCDd-spec.ini 'spec/sw/lcdproc/lcdd/#0/current' ni
+  kdb spec-mount '/sw/lcdproc/lcdd/#0/current'
+  ```
+  You might need to run the `kdb mount` and `kdb spec-mount` commands as root, depending on your
+  Elektra installation. The mountpoints for the components of LCDproc are as follows:
+  * LCDd: `spec/sw/lcdproc/lcdd/#0/current`
+  * lcdproc: `spec/sw/lcdproc/lcdproc/#0/current`
+  * lcdexec: `spec/sw/lcdproc/lcdexec/#0/current`
+  * lcdvc: `spec/sw/lcdproc/lcdvc/#0/current`
+* Override any configuration values you want to change using `kdb set`. You probably need to set
+  `/sw/lcdproc/lcdd/#0/current/server/driverpath` to `/usr/local/lib/lcdproc` (or whatever directory
+  you installed the drivers to).
+  ```sh
+  kdb set '/sw/lcdproc/lcdd/#0/current/server/driverpath' /usr/local/lib/lcdproc
+  ```
+
+---
+
+Below you can find the original LCDproc INSTALL file.
+
+---
+---
+
+
 # REALLY-QUICK START
 
 If you're in a desperate hurry type:
