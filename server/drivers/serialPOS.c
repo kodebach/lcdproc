@@ -262,7 +262,7 @@ serialPOS_init(Driver* drvthis)
 
 	/* Read custom character setting */
 	long int config_n_cust_chars =
-	    drvthis->config_get_int(drvthis->name, "Custom_chars", 0, INT_MIN);
+	    drvthis->config_get_long(drvthis->name, "customchars", INT_MIN);
 	if ((config_n_cust_chars < 0)
 	    || (config_n_cust_chars > MAX_CUSTOM_CHARS)) {
 		report(RPT_WARNING,
@@ -276,9 +276,8 @@ serialPOS_init(Driver* drvthis)
 
 	/* Read cell size */
 	strncpy(cell_size,
-		drvthis->config_get_string(drvthis->name, "Cellsize", 0,
-					   DEFAULT_CELL_SIZE),
-					   sizeof(cell_size));
+		drvthis->config_get_string(drvthis->name, "cellsize", DEFAULT_CELL_SIZE),
+		sizeof(cell_size));
 	cell_size[sizeof(cell_size) - 1] = '\0';
 	if ((sscanf(cell_size, "%dx%d", &cw, &ch) != 2) || (cw <= 0)
 	    || (cw > MAX_CELLWID)
