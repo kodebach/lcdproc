@@ -83,7 +83,7 @@ AX_CFLAGS_GCC_OPTION(-ftrampolines)
 export CFLAGS
 
 dnl elektra
-CFLAGS="$CFLAGS -Ielektra"
+CFLAGS="$CFLAGS -I/usr/local/include/elektra"
 AC_CHECK_LIB([elektra],[kdbOpen],,[AC_MSG_ERROR(elektra missing)])
 AC_CHECK_HEADER([elektra/kdb.h],[],[AC_MSG_ERROR(cannot find kdb.h)])
 AC_CHECK_LIB([elektra-ease],[elektraArrayGet],,[AC_MSG_ERROR(elektra-ease missing)])

@@ -10,6 +10,8 @@
 
 Config* econfig_open(const char* baseKeyName)
 {
+	debug(RPT_DEBUG, "trying to open at base key %s", baseKeyName);
+
     Config* config = ksNew(0, KS_END);
     Key* parent_key = keyNew(baseKeyName, KEY_END);
 	KDB* kdb = kdbOpen(parent_key);
@@ -34,6 +36,8 @@ void econfig_close(Config* config)
 
 bool econfig_exists(Config* config, const char* keyName)
 {
+	debug(RPT_DEBUG, "looking for key %s", keyName);
+
 	Key* key = ksLookupByName(config, keyName, 0);
 
 	if (key == NULL) {
@@ -48,6 +52,8 @@ bool econfig_exists(Config* config, const char* keyName)
 
 char* econfig_get_string(Config* config, const char* keyName, char* default_value)
 {
+	debug(RPT_DEBUG, "trying to access string key %s", keyName);
+
 	Key* key = ksLookupByName(config, keyName, 0);
 
 	if (key == NULL) {
@@ -62,6 +68,8 @@ char* econfig_get_string(Config* config, const char* keyName, char* default_valu
 
 long int econfig_get_long(Config* config, const char* keyName, const long int default_value)
 {
+	debug(RPT_DEBUG, "trying to access long key %s", keyName);
+
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
 		return default_value;
@@ -83,6 +91,8 @@ long int econfig_get_long(Config* config, const char* keyName, const long int de
 
 bool econfig_get_bool(Config* config, const char* keyName, const bool default_value)
 {
+	debug(RPT_DEBUG, "trying to access bool key %s", keyName);
+
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
 		return default_value;
@@ -108,6 +118,8 @@ bool econfig_get_bool(Config* config, const char* keyName, const bool default_va
 
 double econfig_get_double(Config* config, const char* keyName, const double default_value)
 {
+	debug(RPT_DEBUG, "trying to access double key %s", keyName);
+
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
 		return default_value;
@@ -129,6 +141,8 @@ double econfig_get_double(Config* config, const char* keyName, const double defa
 
 long int econfig_get_enum(Config* config, const char* keyName, const int default_value, const long int enum_size, const char** enum_values)
 {
+	debug(RPT_DEBUG, "trying to access enum key %s", keyName);
+
 	Key* key = ksLookupByName(config, keyName, 0);
 	if (key == NULL) {
 		return default_value;
@@ -150,6 +164,8 @@ long int econfig_get_enum(Config* config, const char* keyName, const int default
 
 Config* econfig_array_start(Config* config, const char* arrayKeyName, int* size_ptr)
 {
+	debug(RPT_DEBUG, "trying to access array start key %s", keyName);
+
 	Key* key = ksLookupByName(config, arrayKeyName, 0);
 	if (key == NULL) {
 		return NULL;
@@ -171,6 +187,8 @@ Config* econfig_array_start(Config* config, const char* arrayKeyName, int* size_
 }
 
 char* econfig_array_next(Config* array) {
+	debug(RPT_DEBUG, "trying to access next key in array", keyName);
+
 	Key* current = ksNext(array);
 	if (current == NULL) {
 		return NULL;
@@ -182,6 +200,8 @@ char* econfig_array_next(Config* array) {
 }
 
 void econfig_array_end(Config* array, char* lastElement) {
+	debug(RPT_DEBUG, "closing array", keyName);
+
 	free(lastElement);
 	ksDel(array);
 }

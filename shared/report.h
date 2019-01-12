@@ -32,6 +32,10 @@
 #ifndef REPORT_H
 #define REPORT_H
 
+#ifdef HAVE_CONFIG_H
+#include "config.h" // needed for DEBUG
+#endif
+
 /* Reporting levels */
 /**
  * \def RPT_CRIT
@@ -92,9 +96,9 @@ static inline void dont_report( const int level, const char *format, .../*args*/
  * The only difference is that it is only compiled in if DEBUG is defined.
  */
 #ifdef DEBUG
-#  define debug report
+#define debug report
 #else
-#  define debug dont_report
+#define debug dont_report
 #endif
 
 #endif  /* REPORT_H */

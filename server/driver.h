@@ -21,9 +21,10 @@
 # include <stdbool.h>
 #endif
 #include "shared/defines.h"
+#include "shared/elektraconfig.h"
 
 Driver *
-driver_load(const char *name, const char *filename);
+driver_load(const char *name, const char *filename, Config *config);
 
 int
 driver_unload(Driver *driver);

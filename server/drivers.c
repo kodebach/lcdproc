@@ -81,7 +81,6 @@ drivers_load_driver(const char *name)
 		
 	s = econfig_get_string(config, keyName, NULL);
 	free(keyName);
-	econfig_close(config);
 
 	if (s) {
 		filename = malloc(strlen(driverpath) + strlen(s) + 1);
@@ -95,7 +94,7 @@ drivers_load_driver(const char *name)
 	}
 
 	/* Load the module */
-	driver = driver_load(name, filename);
+	driver = driver_load(name, filename, config);
 	if (driver == NULL) {
 		/* It failed. The message has already been given by driver_load() */
 		report(RPT_INFO, "Module %.40s could not be loaded", filename);
