@@ -69,7 +69,7 @@ drivers_load_driver(const char *name)
 	}
 
 	/* Retrieve data from config file */
-	driverpath = econfig_get_string(config, CONFIG_BASE_KEY"/server/driverpath", "");
+	driverpath = econfig_get_string(config, CONFIG_BASE_KEY"/server/driverpath", DRIVER_LIB_PATH);
 
 	static const char* fileKey = "file";
 	char* keyName = malloc(strlen(CONFIG_BASE_KEY"/driver") + 1 + strlen(name) + 1 + strlen(fileKey) + 1); // baseKey + / + name + / + fileKey + \0
@@ -83,12 +83,14 @@ drivers_load_driver(const char *name)
 	free(keyName);
 
 	if (s) {
-		filename = malloc(strlen(driverpath) + strlen(s) + 1);
+		filename = malloc(strlen(driverpath) + 1 + strlen(s) + 1);
 		strcpy(filename, driverpath);
+		strcat(filename, "/");
 		strcat(filename, s);
 	} else {
-		filename = malloc(strlen(driverpath) + strlen(name) + strlen(MODULE_EXTENSION) + 1);
+		filename = malloc(strlen(driverpath) + 1 + strlen(name) + strlen(MODULE_EXTENSION) + 1);
 		strcpy(filename, driverpath);
+		strcat(filename, "/");
 		strcat(filename, name);
 		strcat(filename, MODULE_EXTENSION);
 	}

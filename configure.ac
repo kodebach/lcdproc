@@ -67,6 +67,16 @@ dnl (the spaces before $CFLAGS and -O are significant)
 	fi
 fi
 
+dnl Driver path
+if test "x$prefix" = "xNONE" ; then
+  prefix="/usr/local"
+fi
+if test "x$exec_prefix" = "xNONE" ; then
+  exec_prefix=$prefix
+fi
+libdir="$exec_prefix/lib"
+AC_DEFINE_UNQUOTED([DRIVER_LIB_PATH], ["$libdir/$PACKAGE"], [The default path for drivers.])
+
 dnl Checks for programs used in building
 AC_PROG_CC
 AC_PROG_CC_STDC
