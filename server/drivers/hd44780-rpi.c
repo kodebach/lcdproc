@@ -369,12 +369,12 @@ hd_init_rpi(Driver *drvthis)
 		return -1;
 	}
 
-	p->rpi_gpio->en = drvthis->config_get_long(drvthis, "pin_en", RPI_DEF_EN);
-	p->rpi_gpio->rs = drvthis->config_get_long(drvthis, "pin_rs", RPI_DEF_RS);
-	p->rpi_gpio->d7 = drvthis->config_get_long(drvthis, "pin_d7", RPI_DEF_D7);
-	p->rpi_gpio->d6 = drvthis->config_get_long(drvthis, "pin_d6", RPI_DEF_D6);
-	p->rpi_gpio->d5 = drvthis->config_get_long(drvthis, "pin_d5", RPI_DEF_D5);
-	p->rpi_gpio->d4 = drvthis->config_get_long(drvthis, "pin_d4", RPI_DEF_D4);
+	p->rpi_gpio->en = drvthis->config_get_long(drvthis, "gpio/pin_en", RPI_DEF_EN);
+	p->rpi_gpio->rs = drvthis->config_get_long(drvthis, "gpio/pin_rs", RPI_DEF_RS);
+	p->rpi_gpio->d7 = drvthis->config_get_long(drvthis, "gpio/pin_d7", RPI_DEF_D7);
+	p->rpi_gpio->d6 = drvthis->config_get_long(drvthis, "gpio/pin_d6", RPI_DEF_D6);
+	p->rpi_gpio->d5 = drvthis->config_get_long(drvthis, "gpio/pin_d5", RPI_DEF_D5);
+	p->rpi_gpio->d4 = drvthis->config_get_long(drvthis, "gpio/pin_d4", RPI_DEF_D4);
 
 	report(RPT_INFO, "hd_init_rpi: Pin EN mapped to GPIO%d", p->rpi_gpio->en);
 	report(RPT_INFO, "hd_init_rpi: Pin RS mapped to GPIO%d", p->rpi_gpio->rs);

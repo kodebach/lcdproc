@@ -53,7 +53,7 @@ hd_init_bwct_usb(Driver *drvthis)
 
   /* Read config file's contents: serial number and contrast */
 
-  strncpy(serial, drvthis->config_get_string(drvthis, "serialnumber", DEFAULT_SERIALNO), sizeof(serial));
+  strncpy(serial, drvthis->config_get_string(drvthis, "usb/serialnumber", DEFAULT_SERIALNO), sizeof(serial));
   serial[sizeof(serial)-1] = '\0';
   if (*serial != '\0') {
     report(RPT_INFO, "hd_init_bwct_usb: Using serial number: %s", serial);

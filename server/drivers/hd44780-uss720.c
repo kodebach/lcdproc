@@ -123,8 +123,8 @@ hd_init_uss720(Driver *drvthis)
 	p->hd44780_functions->uPause = uss720_HD44780_uPause;
 
     /* load config */
-    vendor_id = drvthis->config_get_long(drvthis, "vendorid", 0x1293);
-    product_id = drvthis->config_get_long(drvthis, "productid", 0x0002);
+    vendor_id = drvthis->config_get_long(drvthis, "usb/vendorid", 0x1293);
+    product_id = drvthis->config_get_long(drvthis, "usb/productid", 0x0002);
 
 	/* Hardware Init */
 

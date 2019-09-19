@@ -404,7 +404,7 @@ big_clock_screen(int rep, int display, int *flags_ptr, Config* config)
 	int digits = (lcd_wid >= 20) ? 6 : 4;
 	int xoffs = 0;
 
-	bool showSecs = econfig_get_bool(config, CONFIG_BASE_KEY"/screenmode/bigclock/showSecs", true);
+	bool showSecs = econfig_get_bool(config, CONFIG_BASE_KEY"/screenmode/bigclock/showsecs", true);
 	if (!showSecs) {
 		digits = 4;
 	}

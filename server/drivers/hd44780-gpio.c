@@ -61,7 +61,7 @@ init_gpio_pin(Driver *drvthis, ugpio_t **pin, const char *name)
 	char config_key[8];
 	int number;
 
-	snprintf(config_key, sizeof(config_key), "pin_%s", name);
+	snprintf(config_key, sizeof(config_key), "gpio/pin_%s", name);
 	number = drvthis->config_get_int(drvthis, config_key, -1);
 	if (number == -1)
 		return -1;
@@ -137,19 +137,19 @@ hd_init_gpio(Driver *drvthis)
 
 	p->connection_data = pins;
 
-	if (init_gpio_pin(drvthis, &pins->en, "EN") != 0 ||
-	    init_gpio_pin(drvthis, &pins->rs, "RS") != 0 ||
-	    init_gpio_pin(drvthis, &pins->d7, "D7") != 0 ||
-	    init_gpio_pin(drvthis, &pins->d6, "D6") != 0 ||
-	    init_gpio_pin(drvthis, &pins->d5, "D5") != 0 ||
-	    init_gpio_pin(drvthis, &pins->d4, "D4") != 0) {
+	if (init_gpio_pin(drvthis, &pins->en, "en") != 0 ||
+	    init_gpio_pin(drvthis, &pins->rs, "rs") != 0 ||
+	    init_gpio_pin(drvthis, &pins->d7, "d7") != 0 ||
+	    init_gpio_pin(drvthis, &pins->d6, "d6") != 0 ||
+	    init_gpio_pin(drvthis, &pins->d5, "d5") != 0 ||
+	    init_gpio_pin(drvthis, &pins->d4, "d4") != 0) {
 		report(RPT_ERR, "hd_init_gpio: unable to initialize GPIO pins");
 		gpio_HD44780_close(p);
 		return -1;
 	}
 
 	if (p->numDisplays > 1) {       /* For displays with two controllers */
-		if (init_gpio_pin(drvthis, &pins->en2, "EN2") != 0) {
+		if (init_gpio_pin(drvthis, &pins->en2, "en2") != 0) {
 			report(RPT_ERR, "hd_init_gpio: unable to initialize GPIO pins");
 			gpio_HD44780_close(p);
 			return -1;
@@ -160,9 +160,9 @@ hd_init_gpio(Driver *drvthis)
 	p->hd44780_functions->close = gpio_HD44780_close;
 
 	if (have_backlight_pin(p)) {
-		if (init_gpio_pin(drvthis, &pins->bl, "BL") != 0) {
+		if (init_gpio_pin(drvthis, &pins->bl, "bl") != 0) {
 			report(RPT_WARNING,
-			       "hd_init_gpio: unable to initialize pin_BL - disabling backlight");
+			       "hd_init_gpio: unable to initialize pin_bl - disabling backlight");
 			set_have_backlight_pin(p, 0);
 		}
 		else {
@@ -171,7 +171,7 @@ hd_init_gpio(Driver *drvthis)
 	}
 
 	/* This is enough to set the RW pin to low, if it is available. */
-	init_gpio_pin(drvthis, &pins->rw, "RW");
+	init_gpio_pin(drvthis, &pins->rw, "rw");
 
 	ugpio_set_value(pins->rs, 0);
 

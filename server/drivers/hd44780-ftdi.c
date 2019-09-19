@@ -78,17 +78,17 @@ hd_init_ftdi(Driver *drvthis)
     usb_description = serial_number = NULL;
 
     /* Load config */
-    vendor_id = drvthis->config_get_long(drvthis, "vendorid", 0x0403);
-    product_id = drvthis->config_get_long(drvthis, "productid", 0x6001);
-    usb_description = drvthis->config_get_string(drvthis, "usbdescription", NULL);
-    serial_number = drvthis->config_get_string(drvthis, "serialnumber", NULL);
+    vendor_id = drvthis->config_get_long(drvthis, "usb/vendorid", 0x0403);
+    product_id = drvthis->config_get_long(drvthis, "usb/productid", 0x6001);
+    usb_description = drvthis->config_get_string(drvthis, "usb/description", NULL);
+    serial_number = drvthis->config_get_string(drvthis, "usb/serialnumber", NULL);
 
     /* these config settings are not documented intentionally */
-    p->ftdi_mode = drvthis->config_get_long(drvthis, "ftdi_mode", 8);
-    p->ftdi_line_RS = drvthis->config_get_long(drvthis, "ftdi_line_rs", 0x01);
-    p->ftdi_line_RW = drvthis->config_get_long(drvthis, "ftdi_line_rw", 0x02);
-    p->ftdi_line_EN = drvthis->config_get_long(drvthis, "ftdi_line_en", 0x04);
-    p->ftdi_line_backlight = drvthis->config_get_long(drvthis, "ftdi_line_backlight", 0x08);
+    p->ftdi_mode = drvthis->config_get_long(drvthis, "ftdi/mode", 8);
+    p->ftdi_line_RS = drvthis->config_get_long(drvthis, "ftdi/line_rs", 0x01);
+    p->ftdi_line_RW = drvthis->config_get_long(drvthis, "ftdi/line_rw", 0x02);
+    p->ftdi_line_EN = drvthis->config_get_long(drvthis, "ftdi/line_en", 0x04);
+    p->ftdi_line_backlight = drvthis->config_get_long(drvthis, "ftdi/line_backlight", 0x08);
     p->backlight_bit = 0;
 
     /* some foolproof check */

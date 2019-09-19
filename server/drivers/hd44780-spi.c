@@ -137,7 +137,7 @@ hd_init_spi(Driver *drvthis)
 	/* Get and open the backlight device */
 	p->backlight_bit = -1;
 	strncpy(backlight_device,
-		drvthis->config_get_string(drvthis, "backlightdevice", ""),
+		drvthis->config_get_string(drvthis, "spi/backlightdevice", ""),
 		sizeof(backlight_device));
 	backlight_device[sizeof(backlight_device) - 1] = '\0';
 
