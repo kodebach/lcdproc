@@ -181,7 +181,7 @@ static int main_loop(void)
 	short w = 0;
 
 	/* Continuously check if we get a menu event... */
-
+	Quit = 1;
 	while (!Quit && ((num_bytes = read_response(buf, sizeof(buf)-1)) >= 0)) {
 		if (num_bytes != 0) {
 			process_response(buf);
