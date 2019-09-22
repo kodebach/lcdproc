@@ -687,6 +687,7 @@ static int main_loop(void)
 	int keepalive_delay = 0;
 	int status_delay = 0;
 
+	Quit = 1;
 	/* Continuously check if we get a menu event... */
 	while (!Quit && ((num_bytes = sock_recv_string(sock, buf, sizeof(buf)-1)) >= 0)) {
 		if (num_bytes == 0) {

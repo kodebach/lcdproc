@@ -590,6 +590,7 @@ main_loop(void)
 	int argc, newtoken;
 	int len;
 
+	Quit = 1;
 	while (!Quit) {
 		/* Check for server input... */
 		len = sock_recv(sock, buf, 8000);
