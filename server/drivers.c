@@ -28,6 +28,8 @@
 #include "widget.h"
 #include "main.h"
 
+
+Driver *output_driver = NULL;
 LinkedList *loaded_drivers = NULL;		/**< list of loaded drivers */
 DisplayProps *display_props = NULL;		/**< properties of the display */
 
@@ -38,17 +40,14 @@ DisplayProps *display_props = NULL;		/**< properties of the display */
  * "File" configuration setting in the driver's section.
  * \param name  Driver section name.
  * \retval  <0  error.
- * \retval   0  OK, driver is an input driver only.
- * \retval   1  OK, driver is an output driver.
- * \retval   2  OK, driver is an output driver that needs to run in the foreground.
+ * \retval   0  OK
+ * \retval   2  OK, driver needs to run in the foreground.
  */
 int
 drivers_load_driver(const char *name)
 {
 	Driver *driver;
 	const char *s;
-	char *driverpath;
-	char *filename;
 
 	debug(RPT_DEBUG, "%s(name=\"%.40s\")", __FUNCTION__, name);
 
@@ -69,7 +68,7 @@ drivers_load_driver(const char *name)
 	}
 
 	/* Retrieve data from config file */
-	driverpath = econfig_get_string(config, CONFIG_BASE_KEY"/server/driverpath", DRIVER_LIB_PATH);
+	const char * driverpath = econfig_get_string(config, CONFIG_BASE_KEY"/server/driverpath", DRIVER_LIB_PATH);
 
 	static const char* fileKey = "file";
 	char* keyName = malloc(strlen(CONFIG_BASE_KEY"/driver") + 1 + strlen(name) + 1 + strlen(fileKey) + 1); // baseKey + / + name + / + fileKey + \0
@@ -82,6 +81,7 @@ drivers_load_driver(const char *name)
 	s = econfig_get_string(config, keyName, NULL);
 	free(keyName);
 
+	char * filename;
 	if (s) {
 		filename = malloc(strlen(driverpath) + 1 + strlen(s) + 1);
 		strcpy(filename, driverpath);
@@ -100,23 +100,16 @@ drivers_load_driver(const char *name)
 	if (driver == NULL) {
 		/* It failed. The message has already been given by driver_load() */
 		report(RPT_INFO, "Module %.40s could not be loaded", filename);
-		free(driverpath);
-		free(filename);
 		return -1;
 	}
+	free(filename);
 
 	/* Add driver to list */
 	LL_Push(loaded_drivers, driver);
 
-	free(driverpath);
-	free(filename);
-
-	/* If first driver, store display properties */
-	if (driver_does_output(driver) && !display_props) {
-		if (driver->width(driver) <= 0 || driver->width(driver) > LCD_MAX_WIDTH
-		|| driver->height(driver) <= 0 || driver->height(driver) > LCD_MAX_HEIGHT) {
-			report(RPT_ERR, "Driver [%.40s] has invalid display size", driver->name);
-		}
+	/* If first output driver, store display properties */
+	if (driver_does_output(driver) && !output_driver) {
+		output_driver = driver;
 
 		/* Allocate new DisplayProps structure */
 		display_props = malloc(sizeof(DisplayProps));
@@ -135,32 +128,28 @@ drivers_load_driver(const char *name)
 	}
 
 	/* Return the driver type */
-	if (driver_does_output(driver)) {
-		if (driver_stay_in_foreground(driver))
-			return 2;
-		else
-			return 1;
-	}
+	if (driver_stay_in_foreground(driver))
+		return 2;
+
 	return 0;
 }
 
 
 /**
  * Unload all loaded drivers.
- * \retval  0
  */
-int
+void
 drivers_unload_all(void)
 {
 	Driver *driver;
 
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
+	output_driver = NULL;
+
 	while ((driver = LL_Pop(loaded_drivers)) != NULL) {
 		driver_unload(driver);
 	}
-
-	return 0;
 }
 
 
@@ -320,6 +309,30 @@ drivers_hbar(int x, int y, int len, int promille, int pattern)
 		else
 			driver_alt_hbar(drv, x, y, len, promille, pattern);
 	}
+}
+
+
+/**
+ * Draw a percentage-bar to all drivers.
+ * \param x            Horizontal character position (column) of the starting point.
+ * \param y            Vertical character position (row) of the starting point.
+ * \param width        Width of the widget in characters, including the
+ *                     optional begin and end-labels.
+ * \param promille     Current length level of the bar in promille.
+ * \param begin_label  Optional (may be NULL) text to render in front of /
+ *                     at the beginning of the percentage-bar.
+ * \param end_label    Optional text to render at the end of the pbar.
+ *
+ * Note the driver may choose to not render the labels if there is not enough
+ * space.
+ */
+void
+drivers_pbar(int x, int y, int width, int promille, char *begin_label, char *end_label)
+{
+	Driver *drv;
+
+	ForAllDrivers(drv)
+		driver_pbar(drv, x, y, width, promille, begin_label, end_label);
 }
 
 
