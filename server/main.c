@@ -547,8 +547,8 @@ do_mainloop(void)
 	debug(RPT_DEBUG, "%s()", __FUNCTION__);
 
 	gettimeofday(&t, NULL); /* Get initial time */
-
-	while (1) {
+	const char * quit = getenv("QUIT");
+	while (quit == NULL) {
 		/* Get current time */
 		last_t = t;
 		gettimeofday(&t, NULL);
