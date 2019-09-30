@@ -108,7 +108,7 @@ int Quit = 0;			/**< indicate end of main loop */
 static void exit_program(int val);
 static void sigchld_handler(int signal);
 static int process_command_line(int argc, char **argv);
-static int process_configfile(char * configfile);
+static int process_kdb(char * configfile);
 static int connect_and_setup(void);
 static int process_response(char *str);
 static int exec_command(MenuEntry *cmd);
@@ -130,7 +130,7 @@ int main(int argc, char **argv)
 	if (configfile == NULL) {
 		configfile = DEFAULT_CONFIGFILE;
 	}
-	CHAIN(error, process_configfile(configfile));
+	CHAIN(error, process_kdb(configfile));
 
 	if (report_dest == UNSET_INT || report_level == UNSET_INT) {
 		report_dest = RPT_DEST_STDERR;
@@ -290,7 +290,7 @@ static int process_command_line(int argc, char **argv)
 }
 
 
-static int process_configfile(char *configfile)
+static int process_kdb(char *configfile)
 {
 	if (configfile == NULL) {
 		configfile = DEFAULT_CONFIGFILE;
@@ -702,6 +702,7 @@ static int main_loop(void)
 	int keepalive_delay = 0;
 	int status_delay = 0;
 
+	Quit = 1;
 	/* Continuously check if we get a menu event... */
 	while (!Quit && ((num_bytes = sock_recv_string(sock, buf, sizeof(buf)-1)) >= 0)) {
 		if (num_bytes == 0) {
