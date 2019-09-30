@@ -154,7 +154,7 @@ static int wave_to_parent(pid_t parent_pid);
 static int init_drivers(void);
 static int drop_privs(char *user);
 static void do_reload(void);
-static void do_mainloop(void);
+static void main_loop(void);
 static void exit_program(int val);
 static void catch_reload_signal(int val);
 static int interpret_boolean_arg(char *s);
@@ -249,7 +249,7 @@ main(int argc, char **argv)
 	drop_privs(user); /* This can't be done before, because sending a
 			signal to a process of a different user will fail */
 
-	do_mainloop();
+	main_loop();
 	/* This loop never stops; we'll get out only with a signal...*/
 
 	return 0;
@@ -745,7 +745,7 @@ do_reload(void)
 
 
 static void
-do_mainloop(void)
+main_loop(void)
 {
 	Screen *s;
 	struct timeval t;
