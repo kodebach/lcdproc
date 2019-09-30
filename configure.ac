@@ -93,11 +93,14 @@ AX_CFLAGS_GCC_OPTION(-ftrampolines)
 export CFLAGS
 
 dnl elektra
-CFLAGS="$CFLAGS -I/usr/local/include/elektra"
-AC_CHECK_LIB([elektra],[kdbOpen],,[AC_MSG_ERROR(elektra missing)])
-AC_CHECK_HEADER([elektra/kdb.h],[],[AC_MSG_ERROR(cannot find kdb.h)])
-AC_CHECK_LIB([elektra-ease],[elektraArrayGet],,[AC_MSG_ERROR(elektra-ease missing)])
-AC_CHECK_HEADER([elektra/kdbease.h],[],[AC_MSG_ERROR(cannot find kdbease.h)])
+ifdef([PKG_CHECK_MODULES],
+		[PKG_CHECK_MODULES([ELEKTRA], [elektra-codegen], [ELEKTRA_LIBDIR=`pkg-config --variable=libdir elektra-codegen`],)],
+		[AC_MSG_ERROR([pkg-config not (fully) installed, but needed to find Elektra])])
+AC_SUBST([ELEKTRA_CFLAGS])
+AC_SUBST([ELEKTRA_LIBS])
+
+CFLAGS="$ELEKTRA_CFLAGS $CFLAGS"
+LIBS="$ELEKTRA_LIBS $LIBS -Wl,-rpath $ELEKTRA_LIBDIR"
 
 dnl Solaris
 AC_CHECK_FUNC(gethostbyname,,[AC_CHECK_LIB(nsl,gethostbyname)])
