@@ -75,7 +75,7 @@ static void HelpScreen(int exit_state);
 static void exit_program(int val);
 static void main_loop(void);
 static int process_command_line(int argc, char **argv);
-static int process_configfile(char *cfgfile);
+static int process_kdb(char *cfgfile);
 
 
 #define TIME_UNIT	125000	/**< 1/8th second is a single time unit. */
@@ -238,7 +238,7 @@ main(int argc, char **argv)
 				}
 
 	/* Read config file */
-	int cfgresult = process_configfile(configfile);
+	int cfgresult = process_kdb(configfile);
 	if (cfgresult < 0) {
 		report (RPT_ERR, "Error reading config file\n");
 		exit(EXIT_FAILURE);
@@ -399,7 +399,7 @@ process_command_line(int argc, char **argv)
  * \retval <0 on error
  */
 static int
-process_configfile(char *configfile)
+process_kdb(char *configfile)
 {
 	debug(RPT_DEBUG, "%s(%s)", __FUNCTION__, (configfile) ? configfile : "<null>");
 
@@ -625,6 +625,7 @@ main_loop(void)
 	int argc, newtoken;
 	int len;
 
+	Quit = 1;
 	while (!Quit) {
 		/* Check for server input... */
 		len = sock_recv(sock, buf, 8000);
